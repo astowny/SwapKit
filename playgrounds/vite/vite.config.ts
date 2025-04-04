@@ -7,14 +7,19 @@ import wasm from "vite-plugin-wasm";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: { port: 3000 },
-  base: "/SwapKit",
+  server: { port: 3018 },
+  base: "/",
 
   // NOTE: Have to be added to fix: Uncaught ReferenceError: process & global is not defined
   define: {
     "process.env": {},
     "process.browser": true,
+    "process.version": JSON.stringify("v16.0.0"),  // Ajouter process.version pour éviter l'erreur SES
     global: "globalThis",
+    "window.global": "globalThis",
+    // Ajout de ces lignes pour la compatibilité avec les extensions de sécurité
+    "globalThis.process": JSON.stringify({ version: "v16.0.0", browser: true, env: {} }),
+    "window.process": JSON.stringify({ version: "v16.0.0", browser: true, env: {} })
   },
   plugins: [
     nodePolyfills({

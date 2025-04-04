@@ -7,6 +7,9 @@ if (!phrase) throw new Error("No phrase found");
 
 const getSwapKitClient = () =>
   SwapKit({
+    config: {
+
+    },
     wallets: { ...keystoreWallet },
     plugins: { ...ThorchainPlugin },
   });
@@ -25,7 +28,7 @@ export const doSend = async ({
     const from = skClient.getAddress(Chain.THORChain);
     const balance = await skClient.getBalance(Chain.THORChain);
     console.info(`Balance: ${balance}`);
-    console.info(`💰 Wallet - ${from} | Balance: ${balance}}`);
+    console.info(`💰 Wallet - ${from} | Balance: ${balance}`);
 
     const assetValue = await AssetValue.from({
       asset: "THOR.RUNE",

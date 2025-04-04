@@ -1,27 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-
-
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React + TS</title>
+    <!-- Script de secours pour les extensions SES (comme MetaMask) -->
+    <script>
+      // Définir exports pour la compatibilité
+      var exports = {};
 
+      // Correctif d'urgence pour l'erreur "j is undefined"
+      (function() {
+        try {
+          // Définir j comme un objet vide s'il n'existe pas
+          window.j = window.j || {};
+
+          // Intercepter les erreurs SES
+          window.addEventListener('error', function(event) {
+            if (event.error && event.error.toString().includes('SES_UNCAUGHT_EXCEPTION')) {
+              console.error('Erreur SES détectée:', event.error);
+              event.preventDefault();
+            }
+          });
+
+          console.log('Correctif d\'urgence SES appliqué');
+        } catch (e) {
+          console.error('Erreur lors de l\'application du correctif d\'urgence:', e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <noscript>
       You need to enable JavaScript to run this app.
     </noscript>
 
-    <div id="root"></div>
+    <!-- Div racine pour React -->
+    <div id="root">Chargement de l'application...</div>
 
-    <script>var exports = {};</script>
-    <script type="module">
-      import Buffer from 'buffer'
-      window.Buffer = Buffer.Buffer
-      globalThis.Buffer = Buffer.Buffer
-    </script>
+    <!-- Les polyfills pour Buffer sont maintenant gérés par le fichier src/polyfills.ts -->
+
+    <!-- Script principal -->
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Script de débogage -->
+    <script>
+      // Vérifier si le div root est visible
+      setTimeout(() => {
+        const rootElement = document.getElementById('root');
+        if (rootElement && rootElement.innerHTML === 'Chargement de l\'application...') {
+          console.error('L\'application n\'a pas été rendue après 3 secondes');
+          rootElement.innerHTML += '<p style="color: red;">Erreur de chargement. Vérifiez la console pour plus de détails.</p>';
+        }
+      }, 3000);
+    </script>
   </body>
 </html>
