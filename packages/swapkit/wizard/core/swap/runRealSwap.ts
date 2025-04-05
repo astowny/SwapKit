@@ -1,5 +1,5 @@
-import { AssetValue, Chain, ProviderName } from "@swapkit/core";
-import { getSwapKitClient } from "./client";
+import { AssetValue, Chain, ProviderName } from "../../../core/src/index";
+import { getSwapKitClient, SwapKitClient } from "./client";
 import { executeRealSwap, RealSwapOptions } from "./realSwap";
 
 /**
@@ -22,16 +22,16 @@ const SWAP_CONFIG = {
   },
   // Exemple avec Uniswap (USDC -> ETH)
   uniswapReverse: {
-    sourceAssetString: "ETH.USDC-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    sourceAssetString: "BSC.BNB",
     destinationAssetString: "ETH.ETH",
-    amount: "100", // Montant à swapper (1 USDC)
+    amount: "13", // Montant à swapper (1 USDC)
     slippage: 0.5 // Slippage de 0.5%
   },
   // Exemple avec Maya Protocol
   maya: {
-    sourceAssetString: "MAYA.CACAO",
-    destinationAssetString: "MAYA.BTC",
-    amount: "10", // Montant à swapper (10 CACAO)
+    sourceAssetString: "ETH.USDC",
+    destinationAssetString: "ETH.ETH",
+    amount: "5", // Montant à swapper (10 CACAO)
   }
 };
 
@@ -40,22 +40,9 @@ async function main() {
   try {
     console.log("Initialisation de SwapKit...");
 
-    // Charger les assets statiques
-    await AssetValue.loadStaticAssets();
-    console.log("Assets statiques chargés avec succès");
-
-    // Phrase mnémonique pour le portefeuille
-    const phrase = process.env.MNEMONIC || "votre phrase mnémonique ici";
-
-    if (phrase === "votre phrase mnémonique ici") {
-      console.error("\n⚠️ ATTENTION: Vous devez définir votre propre phrase mnémonique!");
-      console.error("Définissez la variable d'environnement MNEMONIC ou modifiez directement le code.\n");
-      return;
-    }
-
     // Sélectionner la configuration en fonction des arguments de la ligne de commande
     // Par défaut, utiliser ThorChain
-    const configType = process.argv[2]?.toLowerCase() || 'uniswapReverse';
+    const configType = process.argv[2]?.toLowerCase() || 'maya';
     const configAmount = process.argv[3] || undefined;
 
     // Vérifier si la configuration demandée existe
@@ -72,69 +59,17 @@ async function main() {
     const amount = configAmount || config.amount;
     const { sourceAssetString, destinationAssetString, provider, slippage } = config;
 
-    // Extraire les chaînes à partir des assets
-    const extractChainFromAsset = (assetString: string): Chain => {
-      const chainString = assetString.split('.')[0];
-      if (chainString.toUpperCase() === 'BNB') {
-        return Chain.BinanceSmartChain;
-      }
-      return chainString as unknown as Chain;
-    };
-
-    const sourceChain = extractChainFromAsset(sourceAssetString);
-    const destinationChain = extractChainFromAsset(destinationAssetString);
-
-    console.log(`Chaîne source: ${sourceChain}`);
-    console.log(`Chaîne destination: ${destinationChain}`);
-
-    // Créer une instance SwapKit
-    console.log(`Initialisation de SwapKit...`);
-    const swapKit = getSwapKitClient([sourceChain, destinationChain]);
-
-    if (!swapKit) {
-      console.error("\n❌ Impossible d'initialiser SwapKit");
-      return;
-    }
-
-    // Connecter dynamiquement les chaînes nécessaires
-    console.log(`Connexion des chaînes: ${sourceChain}, ${destinationChain}...`);
-
-    // Utiliser la phrase mnémonique déjà définie
-
-    try {
-      await swapKit.connectKeystore([sourceChain, destinationChain], phrase);
-      console.log(`\n✅ Portefeuilles connectés avec succès!`);
-    } catch (error) {
-      console.error(`\n❌ Échec de la connexion des portefeuilles:`, error);
-      return;
-    }
-
-    // Vérifier si les portefeuilles sont connectés
-    const sourceAddress = swapKit.getAddress(sourceChain);
-    const destinationAddress = swapKit.getAddress(destinationChain);
-
-    if (!sourceAddress) {
-      console.error(`\n❌ Échec de la connexion du portefeuille ${sourceChain}`);
-      return;
-    }
-
-    console.log(`\n✅ Portefeuilles connectés avec succès!`);
-    console.log(`Adresse ${sourceChain}: ${sourceAddress}`);
-    console.log(`Adresse ${destinationChain}: ${destinationAddress || "Non disponible"}\n`);
-
-    console.log(`Exécution d'un swap réel de ${amount} ${sourceAssetString} vers ${destinationAssetString}...`);
-
     // Préparer les options de swap
     const swapOptions: RealSwapOptions = {
       amount,
       sourceAssetString,
       destinationAssetString,
       // Utiliser les adresses obtenues des portefeuilles connectés
-      sourceAddress,
-      destinationAddress,
+      // sourceAddress,
+      // destinationAddress,
       // Utiliser les chaînes dérivées
-      sourceChain,
-      destinationChain,
+      // sourceChain,
+      // destinationChain,
       // Utiliser le fournisseur spécifié dans la configuration
     };
 

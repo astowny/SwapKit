@@ -20,13 +20,40 @@ function plugin({ getWallet }: SwapKitPluginParams) {
   async function swap({ route, feeOptionKey }: SwapParams<"evm", QuoteResponseRoute>) {
     const { tx, sellAsset } = route;
 
-    const assetValue = await AssetValue.from({
-      asset: sellAsset,
-      asyncTokenLookup: true,
-    });
+    console.log(`\n[DEBUG] Création d'AssetValue pour l'asset: ${sellAsset}`);
+    console.log(`[DEBUG] Vérification si @swapkit/tokens est installé...`);
 
-    const evmChain = assetValue.chain as EVMChain;
-    const wallet = getWallet(evmChain);
+    let assetValue;
+    let evmChain;
+    let wallet;
+
+    try {
+      // Essayer de charger les assets statiques directement
+      console.log(`[DEBUG] Chargement des assets statiques...`);
+      await AssetValue.loadStaticAssets();
+      console.log(`[DEBUG] Assets statiques chargés avec succès`);
+
+      console.log(`[DEBUG] Création de l'AssetValue avec asyncTokenLookup: true`);
+      assetValue = await AssetValue.from({
+        asset: sellAsset,
+        asyncTokenLookup: true,
+      });
+
+      console.log(`[DEBUG] AssetValue créé avec succès:`);
+      console.log(`[DEBUG] - Chain: ${assetValue.chain}`);
+      console.log(`[DEBUG] - Symbol: ${assetValue.symbol}`);
+      console.log(`[DEBUG] - Decimals: ${assetValue.decimal}`);
+      console.log(`[DEBUG] - Address: ${assetValue.address || "N/A"}`);
+
+      evmChain = assetValue.chain as EVMChain;
+      console.log(`[DEBUG] Chain EVM détectée: ${evmChain}`);
+
+      wallet = getWallet(evmChain);
+      console.log(`[DEBUG] Portefeuille récupéré: ${wallet ? "OK" : "NON TROUVÉ"}`);
+    } catch (error) {
+      console.error(`[DEBUG] ERREUR lors de la création de l'AssetValue:`, error);
+      throw error;
+    }
 
     if (!(EVMChains.includes(evmChain) && tx)) throw new SwapKitError("core_swap_invalid_params");
 

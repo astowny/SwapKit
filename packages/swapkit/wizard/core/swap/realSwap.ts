@@ -1,6 +1,12 @@
-import { AssetValue, Chain, FeeOption, ProviderName } from "@swapkit/core";
+import { Chain, FeeOption, ProviderName, AssetValue } from "../../../core/src/index";
 import { getSwapKitClient } from "./client";
 import { checkPriceImpact, logGasFees } from "./checkPriceImpact";
+import { printNetworkSummary, clearNetworkLogs } from "./networkUtils";
+
+// Ajout de débogage pour vérifier la source de AssetValue
+console.log("[DEBUG] AssetValue module:", AssetValue);
+console.log("[DEBUG] await AssetValue.from:", AssetValue.from);
+console.log("[DEBUG] AssetValue.loadStaticAssets:", AssetValue.loadStaticAssets);
 
 // Fonction pour exécuter un swap réel avec des options personnalisables
 // Exemple d'utilisation :
@@ -117,6 +123,23 @@ export interface RealSwapOptions {
  * @returns Résultat du swap ou null en cas d'échec
  */
 export async function executeRealSwap(options: RealSwapOptions = {}) {
+  console.log("\n[DEBUG] Début de executeRealSwap");
+  console.log("[DEBUG] AssetValue avant loadStaticAssets:", AssetValue);
+
+  // Réinitialiser les logs réseau pour cette exécution
+  clearNetworkLogs();
+  console.log("Logs réseau réinitialisés pour cette exécution");
+
+  // Charger explicitement les assets statiques
+  console.log("[DEBUG] Chargement des assets statiques...");
+  try {
+    await AssetValue.loadStaticAssets();
+    console.log("[DEBUG] Assets statiques chargés avec succès");
+    console.log("[DEBUG] AssetValue après loadStaticAssets:", AssetValue);
+  } catch (error) {
+    console.error("[DEBUG] Erreur lors du chargement des assets statiques:", error);
+  }
+
   // Extraire les options avec des valeurs par défaut
   const {
     amount = "1",
@@ -190,6 +213,63 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       console.log('- swapKit.thorchain object keys:', Object.keys(swapKit.thorchain));
     }
 
+    // Connecter toutes les chaînes disponibles directement
+    const chainsToConnect = new Set<Chain>([
+      // Chain.Arbitrum,
+      // Chain.Avalanche,
+      // Chain.Base,
+      Chain.BinanceSmartChain, // erreur wallet_missing_api_key
+      // Chain.Bitcoin,
+      // Chain.BitcoinCash,
+      // Chain.Cosmos,
+      // Chain.Dash,
+      // Chain.Dogecoin,
+      Chain.Ethereum,
+      // Chain.Fiat,
+      // Chain.Kujira,
+      // Chain.Litecoin,
+      Chain.Maya,
+      // Chain.Optimism,
+      // Chain.Polkadot,
+      // Chain.Chainflip, // erreur
+      // Chain.Polygon,
+      // Chain.Radix,
+      Chain.THORChain,
+      // Chain.Solana
+    ]);
+
+    // Ajouter également les chaînes source et destination pour s'assurer qu'elles sont incluses
+    chainsToConnect.add(effectiveSourceChain);
+    chainsToConnect.add(effectiveDestinationChain);
+
+    // Convertir le Set en tableau
+    const chainsArray = Array.from(chainsToConnect);
+
+    // Connecter toutes les chaînes disponibles
+    console.log(`\nConnexion de toutes les chaînes disponibles: ${chainsArray.join(', ')}...`);
+
+    // Utiliser la phrase mnémonique fournie dans les options ou celle par défaut
+    const phrase = options.mnemonic || process.env.MNEMONIC || "test test test test test test test test test test test junk";
+
+    try {
+      await swapKit.connectKeystore(chainsArray, phrase);
+      console.log(`\n✅ Portefeuilles connectés avec succès!`);
+
+      // Afficher les adresses connectées pour chaque chaîne
+      console.log("\n🔑 Adresses connectées:");
+      for (const chain of chainsArray) {
+        const address = swapKit.getAddress(chain);
+        if (address) {
+          console.log(`${chain}: ${address}`);
+        } else {
+          console.warn(`⚠️ Impossible d'obtenir l'adresse pour ${chain}`);
+        }
+      }
+    } catch (error) {
+      console.error(`\n❌ Échec de la connexion des portefeuilles:`, error);
+      return null;
+    }
+
     // Vérifier si nous pouvons utiliser le plugin ThorChain directement
     if (!swapKit.thorchain || !swapKit.thorchain.swap) {
       console.error("\n❌ Plugin ThorChain non disponible ou méthode swap manquante.");
@@ -224,17 +304,112 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     console.log(`Adresse destination: ${destinationAddress}`);
 
     // Créer les objets AssetValue pour les actifs source et destination
-    const sourceAsset = AssetValue.from({
-      asset: sourceAssetString,
-      value: amount,
-    });
+    console.log(`\n[DEBUG] Création de sourceAsset pour ${sourceAssetString} avec amount=${amount}`);
+    let sourceAsset;
+    let destinationAsset;
 
-    const destinationAsset = AssetValue.from({
-      asset: destinationAssetString,
-      value: 0,
-    });
+    try {
+      // Charger explicitement les assets statiques avant de créer les AssetValue
+      console.log(`[DEBUG] Chargement des assets statiques avant création des AssetValue...`);
+      await AssetValue.loadStaticAssets();
+      console.log(`[DEBUG] Assets statiques chargés avec succès`);
+
+      console.log(`[DEBUG] Création de sourceAsset avec asyncTokenLookup: true`);
+      sourceAsset = await AssetValue.from({
+        asset: sourceAssetString,
+        value: amount,
+        asyncTokenLookup: true
+      });
+
+      console.log(`[DEBUG] sourceAsset créé avec succès:`);
+      console.log(`[DEBUG] - Type: ${typeof sourceAsset}`);
+      console.log(`[DEBUG] - Constructor: ${sourceAsset.constructor?.name}`);
+      console.log(`[DEBUG] - toString(): ${sourceAsset.toString()}`);
+
+      // Utiliser une fonction personnalisée pour sérialiser l'objet sans les BigInt
+      const customStringify = (obj) => {
+        try {
+          return JSON.stringify(obj, (key, value) =>
+            typeof value === 'bigint' ? value.toString() + 'n' : value
+          );
+        } catch (error) {
+          return `[Non sérialisable: ${error.message}]`;
+        }
+      };
+
+      console.log(`[DEBUG] - toJSON (personnalisé): ${customStringify(sourceAsset)}`);
+      console.log(`[DEBUG] - Prototype: ${Object.getPrototypeOf(sourceAsset)?.constructor?.name}`);
+      console.log(`[DEBUG] - hasOwnProperty('decimal'): ${sourceAsset.hasOwnProperty('decimal')}`);
+      console.log(`[DEBUG] - Object.keys(): ${Object.keys(sourceAsset)}`);
+      console.log(`[DEBUG] - Object.getOwnPropertyNames(): ${Object.getOwnPropertyNames(sourceAsset)}`);
+
+      // Extraire manuellement les propriétés importantes
+      console.log(`[DEBUG] - Propriétés importantes:`);
+      console.log(`[DEBUG]   - decimal: ${sourceAsset.decimal}`);
+      console.log(`[DEBUG]   - chain: ${sourceAsset.chain}`);
+      console.log(`[DEBUG]   - symbol: ${sourceAsset.symbol}`);
+      console.log(`[DEBUG]   - ticker: ${sourceAsset.ticker}`);
+      console.log(`[DEBUG]   - address: ${sourceAsset.address || 'N/A'}`);
+      console.log(`[DEBUG]   - value (string): ${sourceAsset.getValue("string")}`);
+      console.log(`[DEBUG]   - value (number): ${sourceAsset.getValue("number")}`);
+
+      // Ne pas essayer de sérialiser les descripteurs de propriétés car ils peuvent contenir des BigInt
+      console.log(`[DEBUG] - Descripteurs de propriétés disponibles: ${Object.getOwnPropertyNames(sourceAsset).join(', ')}`);
+
+      // Vérifier spécifiquement la propriété decimal
+      const decimalDescriptor = Object.getOwnPropertyDescriptor(sourceAsset, 'decimal');
+      console.log(`[DEBUG] - Descripteur de decimal: ${decimalDescriptor ? 'Existe' : 'N\'existe pas'}`);
+      if (decimalDescriptor) {
+        console.log(`[DEBUG]   - decimal est configurable: ${decimalDescriptor.configurable}`);
+        console.log(`[DEBUG]   - decimal est énumérable: ${decimalDescriptor.enumerable}`);
+        console.log(`[DEBUG]   - decimal a un getter: ${!!decimalDescriptor.get}`);
+        console.log(`[DEBUG]   - decimal a un setter: ${!!decimalDescriptor.set}`);
+        console.log(`[DEBUG]   - decimal a une valeur: ${decimalDescriptor.value !== undefined}`);
+      }
+      console.log(`[DEBUG] - Chain: ${sourceAsset.chain}`);
+      console.log(`[DEBUG] - Symbol: ${sourceAsset.symbol}`);
+      console.log(`[DEBUG] - Decimals: ${sourceAsset.decimal}`);
+      console.log(`[DEBUG] - Value: ${sourceAsset.getValue("string")}`);
+
+      console.log(`\n[DEBUG] Création de destinationAsset pour ${destinationAssetString}`);
+      destinationAsset = await AssetValue.from({
+        asset: destinationAssetString,
+        value: 0,
+        asyncTokenLookup: true
+      });
+
+      console.log(`[DEBUG] destinationAsset créé avec succès:`);
+      console.log(`[DEBUG] - Type: ${typeof destinationAsset}`);
+      console.log(`[DEBUG] - Constructor: ${destinationAsset.constructor?.name}`);
+      console.log(`[DEBUG] - toString(): ${destinationAsset.toString()}`);
+
+      // Utiliser la même fonction personnalisée pour sérialiser l'objet
+      console.log(`[DEBUG] - toJSON (personnalisé): ${customStringify(destinationAsset)}`);
+
+      // Extraire manuellement les propriétés importantes
+      console.log(`[DEBUG] - Propriétés importantes:`);
+      console.log(`[DEBUG]   - decimal: ${destinationAsset.decimal}`);
+      console.log(`[DEBUG]   - chain: ${destinationAsset.chain}`);
+      console.log(`[DEBUG]   - symbol: ${destinationAsset.symbol}`);
+      console.log(`[DEBUG]   - ticker: ${destinationAsset.ticker}`);
+      console.log(`[DEBUG]   - address: ${destinationAsset.address || 'N/A'}`);
+
+      // Vérifier spécifiquement la propriété decimal
+      const destDecimalDescriptor = Object.getOwnPropertyDescriptor(destinationAsset, 'decimal');
+      console.log(`[DEBUG] - Descripteur de decimal: ${destDecimalDescriptor ? 'Existe' : 'N\'existe pas'}`);
+      if (destDecimalDescriptor) {
+        console.log(`[DEBUG]   - decimal est configurable: ${destDecimalDescriptor.configurable}`);
+        console.log(`[DEBUG]   - decimal est énumérable: ${destDecimalDescriptor.enumerable}`);
+        console.log(`[DEBUG]   - decimal a un getter: ${!!destDecimalDescriptor.get}`);
+        console.log(`[DEBUG]   - decimal a une valeur: ${destDecimalDescriptor.value !== undefined}`);
+      }
+    } catch (error) {
+      console.error(`[DEBUG] ERREUR lors de la création des AssetValue:`, error);
+      throw error;
+    }
 
     // Vérifier la balance disponible
+    console.log('Verif de la balance')
     const balance = await swapKit.getBalance(effectiveSourceChain, true);
 
     // Extraire le ticker de l'asset source (par exemple, "RUNE" de "THOR.RUNE")
@@ -260,6 +435,65 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     }
 
     console.log(`\n✅ Balance suffisante: ${sourceBalanceValue} ${sourceTicker} disponible pour swapper ${swapAmount} ${sourceTicker}.`);
+
+    // Vérifier la balance de tokens natifs pour les frais de gas
+    // Cette vérification est particulièrement importante pour les chaînes EVM (Ethereum, BSC, etc.)
+    if (effectiveSourceChain.includes('ETH') ||
+        effectiveSourceChain === Chain.BinanceSmartChain ||
+        effectiveSourceChain === Chain.Avalanche ||
+        effectiveSourceChain === Chain.Polygon) {
+
+      // Déterminer le token natif en fonction de la chaîne
+      let nativeToken = '';
+      switch(effectiveSourceChain) {
+        case Chain.Ethereum:
+          nativeToken = 'ETH';
+          break;
+        case Chain.BinanceSmartChain:
+          nativeToken = 'BNB';
+          break;
+        case Chain.Avalanche:
+          nativeToken = 'AVAX';
+          break;
+        case Chain.Polygon:
+          nativeToken = 'MATIC';
+          break;
+        default:
+          nativeToken = effectiveSourceChain;
+      }
+
+      // Trouver la balance du token natif
+      const nativeBalance = balance.find(asset =>
+        asset.ticker === nativeToken &&
+        asset.chain === effectiveSourceChain
+      );
+
+      if (!nativeBalance) {
+        console.warn(`\n⚠️ Attention: Impossible de trouver la balance de ${nativeToken} pour les frais de gas.`);
+        console.warn('Assurez-vous d\'avoir suffisamment de tokens natifs pour couvrir les frais de transaction.');
+      } else {
+        const nativeBalanceValue = nativeBalance.getValue("number");
+        console.log(`\n💰 Balance de tokens natifs pour les frais: ${nativeBalanceValue} ${nativeToken}`);
+
+        // Estimation très basique des frais de gas minimum nécessaires
+        // Ces valeurs sont approximatives et peuvent varier
+        const minGasRequired = {
+          [Chain.Ethereum]: 0.005, // ~5-10$ en ETH
+          [Chain.BinanceSmartChain]: 0.005, // ~1-2$ en BNB
+          [Chain.Avalanche]: 0.05, // ~1-2$ en AVAX
+          [Chain.Polygon]: 1, // ~1-2$ en MATIC
+        };
+
+        const requiredGas = minGasRequired[effectiveSourceChain] || 0.01;
+
+        if (nativeBalanceValue < requiredGas) {
+          console.warn(`\n⚠️ Attention: Votre balance de ${nativeToken} (${nativeBalanceValue}) pourrait être insuffisante pour couvrir les frais de gas.`);
+          console.warn(`Il est recommandé d'avoir au moins ${requiredGas} ${nativeToken} pour les transactions sur ${effectiveSourceChain}.`);
+        } else {
+          console.log(`\n✅ Balance de tokens natifs suffisante pour les frais de gas.`);
+        }
+      }
+    }
 
     // ÉTAPE 1: Obtenir un devis de swap (quote)
     console.log("\nℹ️ ÉTAPE 1: Obtention d'un devis de swap (quote)...");
@@ -507,7 +741,10 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     }
 
     // Utiliser une assertion de type pour contourner les problèmes de typage
-    const txHash = await (swapKit.swap as any)(swapParams);
+    console.log("\n[DEBUG] Exécution du swap avec les paramètres:", swapParams);
+    const txHash = "DEBUG_TX_HASH"; // Pour le débogage, on utilise une valeur factice
+    // Dans un environnement réel, décommentez la ligne suivante:
+    // const txHash = await (swapKit.swap as any)(swapParams);
 
     // ÉTAPE 3: Suivre la transaction
     console.log("\nℹ️ ÉTAPE 3: Suivi de la transaction...");
@@ -522,6 +759,10 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     console.log("\nAttente de la confirmation de la transaction...");
     console.log("Ce processus peut prendre plusieurs minutes. Veuillez consulter l'explorateur pour plus de détails.");
 
+    // Afficher le résumé des logs réseau
+    console.log("\n===== Résumé des appels réseau =====\n");
+    printNetworkSummary();
+
     return {
       status: "success",
       txHash,
@@ -533,6 +774,11 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     };
   } catch (error) {
     console.error("\n❌ Erreur lors de l'exécution du swap:", error);
+
+    // Afficher le résumé des logs réseau même en cas d'erreur
+    console.log("\n===== Résumé des appels réseau (avant erreur) =====\n");
+    printNetworkSummary();
+
     return {
       status: "error",
       error: error.message || "Erreur inconnue",
@@ -560,8 +806,34 @@ if (require.main === module) {
       process.exit(1);
     }
 
-    // Connecter le portefeuille THORChain
-    swapKit.connectKeystore([Chain.THORChain, Chain.BinanceSmartChain], phrase)
+    // Connecter toutes les chaînes disponibles
+    const allChains = [
+      Chain.Arbitrum,
+      Chain.Avalanche,
+      Chain.Base,
+      Chain.BinanceSmartChain,
+      Chain.Bitcoin,
+      Chain.BitcoinCash,
+      Chain.Cosmos,
+      Chain.Dash,
+      Chain.Dogecoin,
+      Chain.Ethereum,
+      Chain.Fiat,
+      Chain.Kujira,
+      Chain.Litecoin,
+      Chain.Maya,
+      Chain.Optimism,
+      Chain.Polkadot,
+      Chain.Chainflip,
+      Chain.Polygon,
+      Chain.Radix,
+      Chain.THORChain,
+      Chain.Solana
+    ];
+
+    console.log(`Connexion de toutes les chaînes disponibles: ${allChains.join(', ')}...`);
+
+    swapKit.connectKeystore(allChains, phrase)
       .then(() => {
         // Exécuter le swap
         const amount = process.argv[2] || "1"; // Utiliser le premier argument comme montant ou 1 par défaut
