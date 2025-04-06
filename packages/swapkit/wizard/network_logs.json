@@ -1,22 +1,22 @@
 [
   {
-    "timestamp": "2025-04-06T12:17:16.459Z",
+    "timestamp": "2025-04-06T13:14:44.878Z",
     "url": "https://api.swapkit.dev/tokens?provider=UNISWAP_V3",
     "method": "GET",
-    "durationMs": 316.30199200000015,
+    "durationMs": 343.2053800000001,
     "requestPayload": "UNISWAP_V3"
   },
   {
-    "timestamp": "2025-04-06T12:17:16.782Z",
+    "timestamp": "2025-04-06T13:14:45.232Z",
     "url": "https://api.swapkit.dev/tokens",
     "method": "GET",
-    "durationMs": 813.0915
+    "durationMs": 726.7833020000003
   },
   {
-    "timestamp": "2025-04-06T12:17:21.440Z",
+    "timestamp": "2025-04-06T13:14:50.192Z",
     "url": "https://api.swapkit.dev/quote",
     "method": "POST",
-    "durationMs": 1109.0659489999998,
+    "durationMs": 710.1882669999995,
     "requestPayload": {
       "sellAsset": "BSC.BNB",
       "buyAsset": "ETH.ETH",

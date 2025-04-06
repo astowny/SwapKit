@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test de l'API de Swap</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .loading {
+      display: none;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #09f;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Test de l'API de Swap</h1>
+  
+  <div class="form-group">
+    <label for="fromAsset">Asset source:</label>
+    <select id="fromAsset">
+      <option value="THOR.RUNE">THOR.RUNE</option>
+      <option value="BTC.BTC">BTC.BTC</option>
+      <option value="ETH.ETH">ETH.ETH</option>
+      <option value="BSC.BNB">BSC.BNB</option>
+      <option value="MAYA.CACAO">MAYA.CACAO</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="toAsset">Asset destination:</label>
+    <select id="toAsset">
+      <option value="BTC.BTC">BTC.BTC</option>
+      <option value="ETH.ETH">ETH.ETH</option>
+      <option value="BSC.BNB">BSC.BNB</option>
+      <option value="THOR.RUNE">THOR.RUNE</option>
+      <option value="MAYA.CACAO">MAYA.CACAO</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="amount">Montant:</label>
+    <input type="text" id="amount" value="0.1">
+  </div>
+  
+  <div class="form-group">
+    <label for="slippage">Slippage (%):</label>
+    <input type="number" id="slippage" value="3" min="0.1" max="100" step="0.1">
+  </div>
+  
+  <button id="swapButton">Exécuter le Swap</button>
+  
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Traitement du swap en cours...</p>
+  </div>
+  
+  <div id="result"></div>
+  
+  <script>
+    document.getElementById('swapButton').addEventListener('click', async () => {
+      const fromAsset = document.getElementById('fromAsset').value;
+      const toAsset = document.getElementById('toAsset').value;
+      const amount = document.getElementById('amount').value;
+      const slippage = document.getElementById('slippage').value;
+      const resultDiv = document.getElementById('result');
+      const loadingDiv = document.getElementById('loading');
+      
+      // Afficher le spinner de chargement
+      loadingDiv.style.display = 'block';
+      resultDiv.textContent = '';
+      
+      try {
+        // Appeler l'API de swap
+        const swapResult = await fetch('http://localhost:3023/api/swaps', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sourceAssetString: fromAsset,
+            destinationAssetString: toAsset,
+            amount,
+            slippage: parseFloat(slippage)
+          }),
+        })
+        .then(response => response.json())
+        .catch(error => {
+          console.error('Error:', error);
+          return { status: 'error', error: error.message || 'Erreur de connexion au serveur' };
+        });
+        
+        // Afficher le résultat
+        resultDiv.textContent = JSON.stringify(swapResult, null, 2);
+      } catch (error) {
+        resultDiv.textContent = `Erreur: ${error.message}`;
+      } finally {
+        // Masquer le spinner de chargement
+        loadingDiv.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
