@@ -517,7 +517,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     if (sourceBalanceValue < swapAmount) {
       console.error(`\n❌ Balance insuffisante. Vous avez ${sourceBalanceValue} ${sourceTicker} mais essayez d'en swapper ${swapAmount}.`);
-      return null;
+      // return null;
     }
 
     console.log(`\n✅ Balance suffisante: ${sourceBalanceValue} ${sourceTicker} disponible pour swapper ${swapAmount} ${sourceTicker}.`);
@@ -624,23 +624,69 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     try {
       console.log("\n⏳ Appel de l'API getSwapQuote...");
       quoteResponse = await swapKit.api.getSwapQuote(quoteRequest);
-      console.log("✅ Devis de swap obtenu avec succès.", quoteResponse);
+      console.log("✅ Devis de swap obtenu avec succès.");
+
+      // Afficher un résumé des routes disponibles
+      if (quoteResponse && quoteResponse.routes && quoteResponse.routes.length > 0) {
+        console.log(`Nombre de routes disponibles: ${quoteResponse.routes.length}`);
+        console.log(`Meilleure route: ${quoteResponse.routes[0].provider}`);
+      } else {
+        console.log("Aucune route disponible dans la réponse.");
+      }
     } catch (error) {
       console.error("\n❌ Erreur lors de l'obtention du devis de swap:", error);
       console.error("Détails de l'erreur:", error.message);
+
+      // Vérifier si c'est une erreur api_v2_server_error
+      if (error.message && error.message.includes('api_v2_server_error')) {
+        console.error("\n⚠️ Erreur de serveur API V2 détectée. Cela peut indiquer qu'aucune route n'est disponible pour ce swap.");
+
+        // Vérifier si nous avons des détails supplémentaires dans la réponse
+        if (error.response && error.response.data) {
+          console.error("Détails de l'erreur API:", error.response.data);
+
+          // Vérifier si le message d'erreur mentionne des routes
+          const errorData = error.response.data;
+          if (typeof errorData === 'object' && errorData.message) {
+            if (errorData.message.includes('no route') ||
+                errorData.message.includes('no available route') ||
+                errorData.message.includes('no provider')) {
+              return {
+                status: "error",
+                error: "Aucune route disponible pour ce swap. Vérifiez les paires d'assets ou essayez avec un montant différent.",
+                details: errorData
+              };
+            }
+          }
+        }
+
+        return {
+          status: "error",
+          error: "Erreur de serveur lors de la recherche de routes. Aucune route disponible pour ce swap.",
+          details: error.message
+        };
+      }
+
+      // Pour les autres types d'erreurs
       if (error.response) {
         console.error("Statut de la réponse:", error.response.status);
         console.error("Données de la réponse:", error.response.data);
       }
+
       return {
         status: "error",
         error: `Erreur lors de l'obtention du devis de swap: ${error.message}`,
+        details: error.response?.data || error
       };
     }
 
+    // Vérifier si nous avons des routes disponibles
     if (!quoteResponse || !quoteResponse.routes || quoteResponse.routes.length === 0) {
       console.error("\n❌ Aucune route disponible pour ce swap. Vérifiez les paramètres ou réessayez plus tard.");
-      return null;
+      return {
+        status: "error",
+        error: "Aucune route disponible pour ce swap. Vérifiez les paires d'assets ou essayez avec un montant différent."
+      };
     }
 
     // Trier les routes par montant attendu (du plus élevé au plus bas)

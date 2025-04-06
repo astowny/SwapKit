@@ -31,7 +31,7 @@ const defaultConfig: NetworkMonitorConfig = {
   logToFile: true,
   logFilePath: './network_logs.json',
   includeRequestPayload: true,
-  includeResponseData: true, // Peut être volumineux, désactivé par défaut
+  includeResponseData: false, // Peut être volumineux, désactivé par défaut
 };
 
 // Classe pour surveiller les appels réseau

@@ -52,7 +52,11 @@ export const getTrackerDetails = withNetworkMonitoring(
 
 // Wrapper pour getTokens
 export const getTokens = withNetworkMonitoring(
-  SwapKitApi.getTokens || ((provider?: string) => fetch(`${getBaseUrl()}tokens${provider ? `?provider=${provider}` : ''}`).then(res => res.json())),
+  SwapKitApi.getTokens || ((provider?: string) => fetch(`${getBaseUrl()}tokens${provider ? `?provider=${provider}` : ''}`, {
+    headers: {
+      'x-api-key': process.env.SWAPKIT_API_KEY,
+    }
+  }).then(res => res.json())),
   (provider) => {
     return `${getBaseUrl()}tokens${provider ? `?provider=${provider}` : ''}`;
   },

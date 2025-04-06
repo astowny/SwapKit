@@ -144,7 +144,7 @@ export const getSwapKitClient = (
       logToFile: true,
       logFilePath: './network_logs.json',
       includeRequestPayload: true,
-      // includeResponseData: true,
+      includeResponseData: false,
     });
 
     // Créer l'instance avec les paramètres correctement structurés

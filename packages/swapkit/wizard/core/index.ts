@@ -195,7 +195,7 @@ async function executeSwap(swapKit, runeAmount = "1") {
 
     if (runeBalanceValue < swapAmount) {
       console.error(`\n❌ Balance insuffisante. Vous avez ${runeBalanceValue} RUNE mais essayez d'en swapper ${swapAmount}.`);
-      return null;
+      // return null;
     }
 
     console.log(`\n✅ Balance suffisante: ${runeBalanceValue} RUNE disponible pour swapper ${swapAmount} RUNE.`);

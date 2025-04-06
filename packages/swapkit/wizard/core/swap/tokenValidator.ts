@@ -68,7 +68,7 @@ export async function fetchAvailableTokens(provider: TokenProvider = TokenProvid
       return tokenCache[cacheKey];
     }
 
-    console.log(`Récupération des tokens pour le fournisseur: ${provider || 'ALL'}`);
+    console.log(`Récupération des tokens pour le fournisseur: ${'ALL'}`);
     console.time('Durée de la récupération des tokens');
 
     // Utiliser la fonction getTokens de notre apiWrapper
@@ -164,6 +164,52 @@ export async function validateAsset(
         provider: provider
       };
     }
+
+    // Vérifier d'abord si l'identifiant complet existe
+    console.log(`Vérification de l'identifiant complet: ${assetString}`);
+
+    // Recherche directe par identifiant complet
+    const exactMatchByIdentifier = tokens.find(token =>
+      token.identifier && token.identifier.toUpperCase() === assetString.toUpperCase()
+    );
+
+    if (exactMatchByIdentifier) {
+      console.log(`✅ Identifiant exact trouvé: ${exactMatchByIdentifier.identifier}`);
+      console.log(`Token trouvé: ${exactMatchByIdentifier.name} (${exactMatchByIdentifier.symbol}, ${exactMatchByIdentifier.decimals} décimales)`);
+
+      // Afficher toutes les propriétés du token trouvé
+      console.log('Toutes les propriétés du token trouvé:');
+      Object.entries(exactMatchByIdentifier).forEach(([key, value]) => {
+        // Formater la valeur pour l'affichage
+        let displayValue: string;
+        if (typeof value === 'string') {
+          // Tronquer les longues chaines (comme les adresses)
+          displayValue = value.length > 30 ? `${value.substring(0, 27)}...` : value;
+        } else if (value === null) {
+          displayValue = 'null';
+        } else if (value === undefined) {
+          displayValue = 'undefined';
+        } else if (typeof value === 'object') {
+          // Convertir les objets en JSON et tronquer
+          const json = JSON.stringify(value);
+          displayValue = json.length > 50 ? `${json.substring(0, 47)}...` : json;
+        } else {
+          displayValue = String(value);
+        }
+
+        console.log(`  ${key}: ${displayValue}`);
+      });
+
+      return {
+        isValid: true,
+        token: exactMatchByIdentifier,
+        message: `Asset valide: ${assetString}`,
+        provider: provider
+      };
+    }
+
+    // Si aucune correspondance exacte n'est trouvée, procéder à la recherche par parties
+    console.log(`⚠️ Aucune correspondance exacte pour l'identifiant complet. Tentative de recherche par parties...`);
 
     // Extraire la chaîne et le symbole de l'asset
     const [chain, symbolWithAddress] = assetString.split('.');
@@ -306,6 +352,8 @@ export async function validateAsset(
       }
 
       // Si l'identifiant complet est disponible, l'utiliser pour une correspondance exacte
+      // Note: Cette vérification est redondante car nous avons déjà vérifié l'identifiant complet
+      // avant d'arriver ici, mais nous la gardons pour être sûr
       if (token.identifier) {
         const tokenIdentifier = token.identifier.toUpperCase();
         const searchIdentifier = assetString.toUpperCase();
@@ -378,7 +426,7 @@ export async function validateAsset(
     console.log(`Asset non trouvé: ${assetString}`);
     return {
       isValid: false,
-      message: `Asset non trouvé dans la liste des tokens disponibles: ${assetString}`,
+      message: `Asset non valide: ${assetString}. Cet identifiant complet n'existe pas dans la liste des tokens disponibles.`,
       provider: provider
     };
   } catch (error) {
