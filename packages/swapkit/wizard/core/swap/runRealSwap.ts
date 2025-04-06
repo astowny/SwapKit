@@ -1,5 +1,3 @@
-import { AssetValue, Chain, ProviderName } from "../../../core/src/index";
-import { getSwapKitClient, SwapKitClient } from "./client";
 import { executeRealSwap, RealSwapOptions } from "./realSwap";
 
 /**
@@ -30,9 +28,9 @@ const SWAP_CONFIG = {
   // Exemple avec Maya Protocol
   // TODO recuperer le identifier depuis l'api de swapkit /tokens : voir : https://api.swapkit.dev/docs/#/
   maya: {
-    sourceAssetString: "POL.USDC",
+    sourceAssetString: "BSC.BNB",
     destinationAssetString: "ETH.ETH",
-    amount: "100", // Montant à swapper (10 CACAO)
+    amount: "0.01", // Montant à swapper (10 CACAO)
   }
 };
 

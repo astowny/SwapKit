@@ -1,15 +1,15 @@
-import { Chain } from "../../../core/src/index";
-import { createSwapKit } from "../../../sdk/src/index";
+import { Chain } from "@swapkit/core";
+import { createSwapKit } from "@swapkit/sdk";
 
 // Importer les plugins disponibles
 import { ThorchainPlugin, MayachainPlugin } from "@swapkit/plugin-thorchain";
-import { EVMPlugin } from "../../../../plugins/evm/src/plugin";
+import { EVMPlugin } from "@swapkit/plugin-evm";
 import { ChainflipPlugin } from "@swapkit/plugin-chainflip";
 import { KadoPlugin } from "@swapkit/plugin-kado";
 import { RadixPlugin } from "@swapkit/plugin-radix";
 
 // Importer les wallets
-import { keystoreWallet } from "../../../../wallets/keystore/src/keystore";
+import { keystoreWallet } from "@swapkit/wallet-keystore";
 import {wallets} from "@swapkit/wallets"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from
 
 // Importer notre factory d'API

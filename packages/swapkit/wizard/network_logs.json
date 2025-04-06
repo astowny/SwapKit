@@ -1,21 +1,28 @@
 [
   {
-    "timestamp": "2025-04-06T11:25:06.107Z",
-    "url": "https://api.swapkit.dev/tokens",
+    "timestamp": "2025-04-06T12:17:16.459Z",
+    "url": "https://api.swapkit.dev/tokens?provider=UNISWAP_V3",
     "method": "GET",
-    "durationMs": 881.1714910000001
+    "durationMs": 316.30199200000015,
+    "requestPayload": "UNISWAP_V3"
   },
   {
-    "timestamp": "2025-04-06T11:25:10.902Z",
+    "timestamp": "2025-04-06T12:17:16.782Z",
+    "url": "https://api.swapkit.dev/tokens",
+    "method": "GET",
+    "durationMs": 813.0915
+  },
+  {
+    "timestamp": "2025-04-06T12:17:21.440Z",
     "url": "https://api.swapkit.dev/quote",
     "method": "POST",
-    "durationMs": 962.9242190000004,
+    "durationMs": 1109.0659489999998,
     "requestPayload": {
-      "sellAsset": "THOR.RUNE",
-      "buyAsset": "BTC.BTC",
-      "sellAmount": "100",
-      "sourceAddress": "thor1yhvxs53dhrtunmh7sc9z6fmxa3wwlmcde6l3rm",
-      "destinationAddress": "bc1qlqr49xsavpt9xl8hnpnulz5yk6eq32zupq6qsx",
+      "sellAsset": "BSC.BNB",
+      "buyAsset": "ETH.ETH",
+      "sellAmount": "0.01",
+      "sourceAddress": "0x4cE8bEe6A8afC3debF669adC3b1727103cdBB649",
+      "destinationAddress": "0x4cE8bEe6A8afC3debF669adC3b1727103cdBB649",
       "slippage": 3,
       "includeTx": true
     }

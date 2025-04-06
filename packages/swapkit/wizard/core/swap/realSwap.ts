@@ -1,13 +1,34 @@
-import { Chain, FeeOption, ProviderName, AssetValue } from "../../../core/src/index";
+import { Chain, FeeOption, ProviderName, AssetValue } from "@swapkit/core";
 import { getSwapKitClient } from "./client";
-import { checkPriceImpact, logGasFees } from "./checkPriceImpact";
 import { printNetworkSummary, clearNetworkLogs } from "./networkUtils";
 import { validateAsset, TokenProvider } from "./tokenValidator";
 
-// Ajout de débogage pour vérifier la source de AssetValue
-console.log("[DEBUG] AssetValue module:", AssetValue);
-console.log("[DEBUG] await AssetValue.from:", AssetValue.from);
-console.log("[DEBUG] AssetValue.loadStaticAssets:", AssetValue.loadStaticAssets);
+// Utilitaire de logging simple
+const logger = {
+  // Fonction pour les logs essentiels (toujours affichés)
+  info: (message: string, ...args: any[]) => {
+    console.log(message, ...args);
+  },
+  // Fonction pour les logs de débogage (affichés uniquement si enableDebug est true)
+  debug: (message: string, ...args: any[]) => {
+    if (globalLogConfig.enableDebug) {
+      logger.debug(`${message}`, ...args);
+    }
+  },
+  // Fonction pour les logs d'erreur (toujours affichés)
+  error: (message: string, ...args: any[]) => {
+    logger.error(`[ERROR] ${message}`, ...args);
+  },
+  // Fonction pour les logs d'avertissement (toujours affichés)
+  warn: (message: string, ...args: any[]) => {
+    logger.warn(`[WARN] ${message}`, ...args);
+  }
+};
+
+// Configuration globale des logs
+const globalLogConfig = {
+  enableDebug: false
+};
 
 // Fonction pour exécuter un swap réel avec des options personnalisables
 // Exemple d'utilisation :
@@ -118,6 +139,8 @@ export interface RealSwapOptions {
   pluginName?: string;
   /** Forcer l'exécution même si les assets ne sont pas reconnus (par défaut: false) */
   forceExecution?: boolean;
+  /** Activer les logs de débogage (par défaut: false) */
+  enableDebug?: boolean;
 }
 
 /**
@@ -126,23 +149,26 @@ export interface RealSwapOptions {
  * @returns Résultat du swap ou null en cas d'échec
  */
 export async function executeRealSwap(options: RealSwapOptions = {}) {
-  console.log("\n[DEBUG] Début de executeRealSwap");
-  console.log("[DEBUG] AssetValue avant loadStaticAssets:", AssetValue);
+  // Configurer les logs en fonction de l'option enableDebug
+  globalLogConfig.enableDebug = options.enableDebug || false;
+
+  logger.debug("Début de executeRealSwap");
+  logger.debug("AssetValue avant loadStaticAssets:", AssetValue);
 
   // Réinitialiser les logs réseau pour cette exécution
   clearNetworkLogs();
-  console.log("Logs réseau réinitialisés pour cette exécution");
+  logger.info("Logs réseau réinitialisés pour cette exécution");
 
 
 
   // Charger explicitement les assets statiques
-  console.log("[DEBUG] Chargement des assets statiques...");
+  logger.debug("Chargement des assets statiques...");
   try {
     await AssetValue.loadStaticAssets();
-    console.log("[DEBUG] Assets statiques chargés avec succès");
-    console.log("[DEBUG] AssetValue après loadStaticAssets:", AssetValue);
+    logger.debug("Assets statiques chargés avec succès");
+    logger.debug("AssetValue après loadStaticAssets:", AssetValue);
   } catch (error) {
-    console.error("[DEBUG] Erreur lors du chargement des assets statiques:", error);
+    logger.error("Erreur lors du chargement des assets statiques:", error);
   }
 
   // Extraire les options avec des valeurs par défaut
@@ -191,8 +217,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     const effectiveSourceChain = (sourceChain || derivedSourceChain)!;
     const effectiveDestinationChain = (destinationChain || derivedDestinationChain)!;
 
-    console.log(`Chaîne source: ${effectiveSourceChain}`);
-    console.log(`Chaîne destination: ${effectiveDestinationChain}`);
+    logger.info(`Chaîne source: ${effectiveSourceChain}`);
+    logger.info(`Chaîne destination: ${effectiveDestinationChain}`);
 
     // Déterminer le fournisseur approprié en fonction des chaînes
     const determineProvider = () => {
@@ -219,84 +245,84 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     };
 
     const suggestedProvider = determineProvider();
-    console.log(`Fournisseur suggéré pour la validation des tokens: ${suggestedProvider || 'ALL'}`);
+    logger.info(`Fournisseur suggéré pour la validation des tokens: ${suggestedProvider || 'ALL'}`);
 
     // Vérifier que les assets existent dans l'API SwapKit tokens
-    console.log("\nVérification des assets dans l'API SwapKit tokens...");
+    logger.info("\nVérification des assets dans l'API SwapKit tokens...");
 
     // Vérifier l'asset source
     const sourceAssetValidation = await validateAsset(sourceAssetString, suggestedProvider);
-    console.log(`Asset source (${sourceAssetString}): ${sourceAssetValidation.isValid ? '✅ Valide' : '❌ Non valide'}`);
+    logger.info(`Asset source (${sourceAssetString}): ${sourceAssetValidation.isValid ? '✅ Valide' : '❌ Non valide'}`);
     if (!sourceAssetValidation.isValid) {
-      console.warn(`⚠️ Avertissement: ${sourceAssetValidation.message}`);
+      logger.warn(`⚠️ Avertissement: ${sourceAssetValidation.message}`);
     } else if (sourceAssetValidation.token) {
-      console.log(`  Nom: ${sourceAssetValidation.token.name}`);
-      console.log(`  Décimales: ${sourceAssetValidation.token.decimals}`);
-      console.log(`  Fournisseur: ${sourceAssetValidation.provider || 'ALL'}`);
+      logger.info(`  Nom: ${sourceAssetValidation.token.name}`);
+      logger.info(`  Décimales: ${sourceAssetValidation.token.decimals}`);
+      logger.info(`  Fournisseur: ${sourceAssetValidation.provider || 'ALL'}`);
       if (sourceAssetValidation.token.logoURI) {
-        console.log(`  Logo: ${sourceAssetValidation.token.logoURI}`);
+        logger.info(`  Logo: ${sourceAssetValidation.token.logoURI}`);
       }
       if (sourceAssetValidation.token.coingeckoId) {
-        console.log(`  CoinGecko ID: ${sourceAssetValidation.token.coingeckoId}`);
+        logger.info(`  CoinGecko ID: ${sourceAssetValidation.token.coingeckoId}`);
       }
     }
 
     // Vérifier l'asset destination
     const destinationAssetValidation = await validateAsset(destinationAssetString, suggestedProvider);
-    console.log(`Asset destination (${destinationAssetString}): ${destinationAssetValidation.isValid ? '✅ Valide' : '❌ Non valide'}`);
+    logger.info(`Asset destination (${destinationAssetString}): ${destinationAssetValidation.isValid ? '✅ Valide' : '❌ Non valide'}`);
     if (!destinationAssetValidation.isValid) {
-      console.warn(`⚠️ Avertissement: ${destinationAssetValidation.message}`);
+      logger.warn(`⚠️ Avertissement: ${destinationAssetValidation.message}`);
     } else if (destinationAssetValidation.token) {
-      console.log(`  Nom: ${destinationAssetValidation.token.name}`);
-      console.log(`  Décimales: ${destinationAssetValidation.token.decimals}`);
-      console.log(`  Fournisseur: ${destinationAssetValidation.provider || 'ALL'}`);
+      logger.info(`  Nom: ${destinationAssetValidation.token.name}`);
+      logger.info(`  Décimales: ${destinationAssetValidation.token.decimals}`);
+      logger.info(`  Fournisseur: ${destinationAssetValidation.provider || 'ALL'}`);
       if (destinationAssetValidation.token.logoURI) {
-        console.log(`  Logo: ${destinationAssetValidation.token.logoURI}`);
+        logger.info(`  Logo: ${destinationAssetValidation.token.logoURI}`);
       }
       if (destinationAssetValidation.token.coingeckoId) {
-        console.log(`  CoinGecko ID: ${destinationAssetValidation.token.coingeckoId}`);
+        logger.info(`  CoinGecko ID: ${destinationAssetValidation.token.coingeckoId}`);
       }
     }
 
     // Si l'un des assets n'est pas valide, demander confirmation à l'utilisateur
     if (!sourceAssetValidation.isValid || !destinationAssetValidation.isValid) {
       if (!forceExecution) {
-        console.warn("\n⚠️ Un ou plusieurs assets ne sont pas reconnus dans l'API SwapKit tokens.");
-        console.warn("Cela peut indiquer que vous utilisez un asset non supporté ou mal formaté.");
-        console.warn("Pour forcer l'exécution malgré cet avertissement, utilisez l'option 'forceExecution: true'.");
+        logger.warn("\n⚠️ Un ou plusieurs assets ne sont pas reconnus dans l'API SwapKit tokens.");
+        logger.warn("Cela peut indiquer que vous utilisez un asset non supporté ou mal formaté.");
+        logger.warn("Pour forcer l'exécution malgré cet avertissement, utilisez l'option 'forceExecution: true'.");
         return {
           status: "error",
           error: "Assets non reconnus dans l'API SwapKit tokens. Utilisez forceExecution: true pour ignorer cette vérification."
         };
       } else {
-        console.warn("\n⚠️ Exécution forcée malgré des assets non reconnus.");
+        logger.warn("\n⚠️ Exécution forcée malgré des assets non reconnus.");
       }
     }
 
     // Connecter dynamiquement les chaînes nécessaires
     const swapKit = await getSwapKitClient([effectiveSourceChain, effectiveDestinationChain]);
 
-    console.log(`Chaîne source: ${effectiveSourceChain}`);
-    console.log(`Chaîne destination: ${effectiveDestinationChain}`);
+    logger.info(`Chaîne source: ${effectiveSourceChain}`);
+    logger.info(`Chaîne destination: ${effectiveDestinationChain}`);
     if (!swapKit) {
-      console.error("\n❌ Impossible d'initialiser SwapKit");
+      logger.error("\n❌ Impossible d'initialiser SwapKit");
       return null;
     }
 
     // Vérifier que le client SwapKit est correctement configuré
-    console.log('\nDébogage SwapKit:');
-    console.log('- swapKit object keys:', Object.keys(swapKit));
-    console.log('- swapKit.api exists:', !!swapKit.api);
+    logger.info('\nDébogage SwapKit:');
+    logger.info('- swapKit object keys:', Object.keys(swapKit));
+    logger.info('- swapKit.api exists:', !!swapKit.api);
 
     if (swapKit.api) {
-      console.log('- swapKit.api object keys:', Object.keys(swapKit.api));
-      console.log('- swapKit.api.getSwapQuote exists:', !!swapKit.api.getSwapQuote);
+      logger.info('- swapKit.api object keys:', Object.keys(swapKit.api));
+      logger.info('- swapKit.api.getSwapQuote exists:', !!swapKit.api.getSwapQuote);
     }
 
     // Vérifier si la propriété thorchain existe
-    console.log('- swapKit.thorchain exists:', !!swapKit.thorchain);
+    logger.info('- swapKit.thorchain exists:', !!swapKit.thorchain);
     if (swapKit.thorchain) {
-      console.log('- swapKit.thorchain object keys:', Object.keys(swapKit.thorchain));
+      logger.info('- swapKit.thorchain object keys:', Object.keys(swapKit.thorchain));
     }
 
     // Connecter toutes les chaînes disponibles directement
@@ -332,40 +358,40 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     const chainsArray = Array.from(chainsToConnect);
 
     // Connecter toutes les chaînes disponibles
-    console.log(`\nConnexion de toutes les chaînes disponibles: ${chainsArray.join(', ')}...`);
+    logger.info(`\nConnexion de toutes les chaînes disponibles: ${chainsArray.join(', ')}...`);
 
     // Utiliser la phrase mnémonique fournie dans les options ou celle par défaut
     const phrase = options.mnemonic || process.env.MNEMONIC || "test test test test test test test test test test test junk";
 
     try {
       await swapKit.connectKeystore(chainsArray, phrase);
-      console.log(`\n✅ Portefeuilles connectés avec succès!`);
+      logger.info(`\n✅ Portefeuilles connectés avec succès!`);
 
       // Afficher les adresses connectées pour chaque chaîne
-      console.log("\n🔑 Adresses connectées:");
+      logger.info("\n🔑 Adresses connectées:");
       for (const chain of chainsArray) {
         const address = swapKit.getAddress(chain);
         if (address) {
-          console.log(`${chain}: ${address}`);
+          logger.info(`${chain}: ${address}`);
         } else {
-          console.warn(`⚠️ Impossible d'obtenir l'adresse pour ${chain}`);
+          logger.warn(`⚠️ Impossible d'obtenir l'adresse pour ${chain}`);
         }
       }
     } catch (error) {
-      console.error(`\n❌ Échec de la connexion des portefeuilles:`, error);
+      logger.error(`\n❌ Échec de la connexion des portefeuilles:`, error);
       return null;
     }
 
     // Vérifier si nous pouvons utiliser le plugin ThorChain directement
     if (!swapKit.thorchain || !swapKit.thorchain.swap) {
-      console.error("\n❌ Plugin ThorChain non disponible ou méthode swap manquante.");
-      console.error("Vérifiez que le plugin ThorChain est correctement importé dans client.ts");
+      logger.error("\n❌ Plugin ThorChain non disponible ou méthode swap manquante.");
+      logger.error("Vérifiez que le plugin ThorChain est correctement importé dans client.ts");
       return null;
     }
 
-    console.log("\n✅ Plugin ThorChain disponible. Nous allons utiliser swapKit.thorchain.swap directement.");
+    logger.info("\n✅ Plugin ThorChain disponible. Nous allons utiliser swapKit.thorchain.swap directement.");
 
-    console.log(`\n⚡️ Exécution d'un swap réel de ${amount} ${sourceAssetString} vers ${destinationAssetString}...`);
+    logger.info(`\n⚡️ Exécution d'un swap réel de ${amount} ${sourceAssetString} vers ${destinationAssetString}...`);
 
     // Déterminer l'adresse source
     // 1. Utiliser l'adresse source personnalisée si fournie
@@ -374,7 +400,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Vérifier si une adresse source est disponible
     if (!sourceAddress) {
-      console.error(`\n❌ Aucune adresse source disponible. Veuillez fournir une adresse source personnalisée ou connecter un portefeuille ${effectiveSourceChain}.`);
+      logger.error(`\n❌ Aucune adresse source disponible. Veuillez fournir une adresse source personnalisée ou connecter un portefeuille ${effectiveSourceChain}.`);
       return null;
     }
 
@@ -386,31 +412,31 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
                               swapKit.getAddress(effectiveDestinationChain) ||
                               "0x4cE8bEe6A8afC3debF669adC3b1727103cdBB649"; // Adresse de secours
 
-    console.log(`Adresse source: ${sourceAddress}`);
-    console.log(`Adresse destination: ${destinationAddress}`);
+    logger.info(`Adresse source: ${sourceAddress}`);
+    logger.info(`Adresse destination: ${destinationAddress}`);
 
     // Créer les objets AssetValue pour les actifs source et destination
-    console.log(`\n[DEBUG] Création de sourceAsset pour ${sourceAssetString} avec amount=${amount}`);
+    logger.debug(`\nCréation de sourceAsset pour ${sourceAssetString} avec amount=${amount}`);
     let sourceAsset;
     let destinationAsset;
 
     try {
       // Charger explicitement les assets statiques avant de créer les AssetValue
-      console.log(`[DEBUG] Chargement des assets statiques avant création des AssetValue...`);
+      logger.debug(`Chargement des assets statiques avant création des AssetValue...`);
       await AssetValue.loadStaticAssets();
-      console.log(`[DEBUG] Assets statiques chargés avec succès`);
+      logger.debug(`Assets statiques chargés avec succès`);
 
-      console.log(`[DEBUG] Création de sourceAsset avec asyncTokenLookup: true`);
+      logger.debug(`Création de sourceAsset avec asyncTokenLookup: true`);
       sourceAsset = await AssetValue.from({
         asset: sourceAssetString,
         value: amount,
         asyncTokenLookup: true
       });
 
-      console.log(`[DEBUG] sourceAsset créé avec succès:`);
-      console.log(`[DEBUG] - Type: ${typeof sourceAsset}`);
-      console.log(`[DEBUG] - Constructor: ${sourceAsset.constructor?.name}`);
-      console.log(`[DEBUG] - toString(): ${sourceAsset.toString()}`);
+      logger.debug(`sourceAsset créé avec succès:`);
+      logger.debug(`- Type: ${typeof sourceAsset}`);
+      logger.debug(`- Constructor: ${sourceAsset.constructor?.name}`);
+      logger.debug(`- toString(): ${sourceAsset.toString()}`);
 
       // Utiliser une fonction personnalisée pour sérialiser l'objet sans les BigInt
       const customStringify = (obj) => {
@@ -423,79 +449,79 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
         }
       };
 
-      console.log(`[DEBUG] - toJSON (personnalisé): ${customStringify(sourceAsset)}`);
-      console.log(`[DEBUG] - Prototype: ${Object.getPrototypeOf(sourceAsset)?.constructor?.name}`);
-      console.log(`[DEBUG] - hasOwnProperty('decimal'): ${sourceAsset.hasOwnProperty('decimal')}`);
-      console.log(`[DEBUG] - Object.keys(): ${Object.keys(sourceAsset)}`);
-      console.log(`[DEBUG] - Object.getOwnPropertyNames(): ${Object.getOwnPropertyNames(sourceAsset)}`);
+      logger.debug(`- toJSON (personnalisé): ${customStringify(sourceAsset)}`);
+      logger.debug(`- Prototype: ${Object.getPrototypeOf(sourceAsset)?.constructor?.name}`);
+      logger.debug(`- hasOwnProperty('decimal'): ${sourceAsset.hasOwnProperty('decimal')}`);
+      logger.debug(`- Object.keys(): ${Object.keys(sourceAsset)}`);
+      logger.debug(`- Object.getOwnPropertyNames(): ${Object.getOwnPropertyNames(sourceAsset)}`);
 
       // Extraire manuellement les propriétés importantes
-      console.log(`[DEBUG] - Propriétés importantes:`);
-      console.log(`[DEBUG]   - decimal: ${sourceAsset.decimal}`);
-      console.log(`[DEBUG]   - chain: ${sourceAsset.chain}`);
-      console.log(`[DEBUG]   - symbol: ${sourceAsset.symbol}`);
-      console.log(`[DEBUG]   - ticker: ${sourceAsset.ticker}`);
-      console.log(`[DEBUG]   - address: ${sourceAsset.address || 'N/A'}`);
-      console.log(`[DEBUG]   - value (string): ${sourceAsset.getValue("string")}`);
-      console.log(`[DEBUG]   - value (number): ${sourceAsset.getValue("number")}`);
+      logger.debug(`- Propriétés importantes:`);
+      logger.debug(`- decimal: ${sourceAsset.decimal}`);
+      logger.debug(`- chain: ${sourceAsset.chain}`);
+      logger.debug(`- symbol: ${sourceAsset.symbol}`);
+      logger.debug(`- ticker: ${sourceAsset.ticker}`);
+      logger.debug(`- address: ${sourceAsset.address || 'N/A'}`);
+      logger.debug(`- value (string): ${sourceAsset.getValue("string")}`);
+      logger.debug(`- value (number): ${sourceAsset.getValue("number")}`);
 
       // Ne pas essayer de sérialiser les descripteurs de propriétés car ils peuvent contenir des BigInt
-      console.log(`[DEBUG] - Descripteurs de propriétés disponibles: ${Object.getOwnPropertyNames(sourceAsset).join(', ')}`);
+      logger.debug(`- Descripteurs de propriétés disponibles: ${Object.getOwnPropertyNames(sourceAsset).join(', ')}`);
 
       // Vérifier spécifiquement la propriété decimal
       const decimalDescriptor = Object.getOwnPropertyDescriptor(sourceAsset, 'decimal');
-      console.log(`[DEBUG] - Descripteur de decimal: ${decimalDescriptor ? 'Existe' : 'N\'existe pas'}`);
+      logger.debug(`- Descripteur de decimal: ${decimalDescriptor ? 'Existe' : 'N\'existe pas'}`);
       if (decimalDescriptor) {
-        console.log(`[DEBUG]   - decimal est configurable: ${decimalDescriptor.configurable}`);
-        console.log(`[DEBUG]   - decimal est énumérable: ${decimalDescriptor.enumerable}`);
-        console.log(`[DEBUG]   - decimal a un getter: ${!!decimalDescriptor.get}`);
-        console.log(`[DEBUG]   - decimal a un setter: ${!!decimalDescriptor.set}`);
-        console.log(`[DEBUG]   - decimal a une valeur: ${decimalDescriptor.value !== undefined}`);
+        logger.debug(`- decimal est configurable: ${decimalDescriptor.configurable}`);
+        logger.debug(`- decimal est énumérable: ${decimalDescriptor.enumerable}`);
+        logger.debug(`- decimal a un getter: ${!!decimalDescriptor.get}`);
+        logger.debug(`- decimal a un setter: ${!!decimalDescriptor.set}`);
+        logger.debug(`- decimal a une valeur: ${decimalDescriptor.value !== undefined}`);
       }
-      console.log(`[DEBUG] - Chain: ${sourceAsset.chain}`);
-      console.log(`[DEBUG] - Symbol: ${sourceAsset.symbol}`);
-      console.log(`[DEBUG] - Decimals: ${sourceAsset.decimal}`);
-      console.log(`[DEBUG] - Value: ${sourceAsset.getValue("string")}`);
+      logger.debug(`- Chain: ${sourceAsset.chain}`);
+      logger.debug(`- Symbol: ${sourceAsset.symbol}`);
+      logger.debug(`- Decimals: ${sourceAsset.decimal}`);
+      logger.debug(`- Value: ${sourceAsset.getValue("string")}`);
 
-      console.log(`\n[DEBUG] Création de destinationAsset pour ${destinationAssetString}`);
+      logger.debug(`\nCréation de destinationAsset pour ${destinationAssetString}`);
       destinationAsset = await AssetValue.from({
         asset: destinationAssetString,
         value: 0,
         asyncTokenLookup: true
       });
 
-      console.log(`[DEBUG] destinationAsset créé avec succès:`);
-      console.log(`[DEBUG] - Type: ${typeof destinationAsset}`);
-      console.log(`[DEBUG] - Constructor: ${destinationAsset.constructor?.name}`);
-      console.log(`[DEBUG] - toString(): ${destinationAsset.toString()}`);
+      logger.debug(`destinationAsset créé avec succès:`);
+      logger.debug(`- Type: ${typeof destinationAsset}`);
+      logger.debug(`- Constructor: ${destinationAsset.constructor?.name}`);
+      logger.debug(`- toString(): ${destinationAsset.toString()}`);
 
       // Utiliser la même fonction personnalisée pour sérialiser l'objet
-      console.log(`[DEBUG] - toJSON (personnalisé): ${customStringify(destinationAsset)}`);
+      logger.debug(`- toJSON (personnalisé): ${customStringify(destinationAsset)}`);
 
       // Extraire manuellement les propriétés importantes
-      console.log(`[DEBUG] - Propriétés importantes:`);
-      console.log(`[DEBUG]   - decimal: ${destinationAsset.decimal}`);
-      console.log(`[DEBUG]   - chain: ${destinationAsset.chain}`);
-      console.log(`[DEBUG]   - symbol: ${destinationAsset.symbol}`);
-      console.log(`[DEBUG]   - ticker: ${destinationAsset.ticker}`);
-      console.log(`[DEBUG]   - address: ${destinationAsset.address || 'N/A'}`);
+      logger.debug(`- Propriétés importantes:`);
+      logger.debug(`- decimal: ${destinationAsset.decimal}`);
+      logger.debug(`- chain: ${destinationAsset.chain}`);
+      logger.debug(`- symbol: ${destinationAsset.symbol}`);
+      logger.debug(`- ticker: ${destinationAsset.ticker}`);
+      logger.debug(`- address: ${destinationAsset.address || 'N/A'}`);
 
       // Vérifier spécifiquement la propriété decimal
       const destDecimalDescriptor = Object.getOwnPropertyDescriptor(destinationAsset, 'decimal');
-      console.log(`[DEBUG] - Descripteur de decimal: ${destDecimalDescriptor ? 'Existe' : 'N\'existe pas'}`);
+      logger.debug(`- Descripteur de decimal: ${destDecimalDescriptor ? 'Existe' : 'N\'existe pas'}`);
       if (destDecimalDescriptor) {
-        console.log(`[DEBUG]   - decimal est configurable: ${destDecimalDescriptor.configurable}`);
-        console.log(`[DEBUG]   - decimal est énumérable: ${destDecimalDescriptor.enumerable}`);
-        console.log(`[DEBUG]   - decimal a un getter: ${!!destDecimalDescriptor.get}`);
-        console.log(`[DEBUG]   - decimal a une valeur: ${destDecimalDescriptor.value !== undefined}`);
+        logger.debug(`- decimal est configurable: ${destDecimalDescriptor.configurable}`);
+        logger.debug(`- decimal est énumérable: ${destDecimalDescriptor.enumerable}`);
+        logger.debug(`- decimal a un getter: ${!!destDecimalDescriptor.get}`);
+        logger.debug(`- decimal a une valeur: ${destDecimalDescriptor.value !== undefined}`);
       }
     } catch (error) {
-      console.error(`[DEBUG] ERREUR lors de la création des AssetValue:`, error);
+      logger.error(`[DEBUG] ERREUR lors de la création des AssetValue:`, error);
       throw error;
     }
 
     // Vérifier la balance disponible
-    console.log('Verif de la balance')
+    logger.info('Verif de la balance')
     const balance = await swapKit.getBalance(effectiveSourceChain, true);
 
     // Extraire le ticker de l'asset source (par exemple, "RUNE" de "THOR.RUNE")
@@ -508,7 +534,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     );
 
     if (!sourceBalance) {
-      console.error(`\n❌ Aucune balance ${sourceAssetString} trouvée. Impossible d'exécuter le swap.`);
+      logger.error(`\n❌ Aucune balance ${sourceAssetString} trouvée. Impossible d'exécuter le swap.`);
       return null;
     }
 
@@ -516,11 +542,11 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     const swapAmount = parseFloat(amount);
 
     if (sourceBalanceValue < swapAmount) {
-      console.error(`\n❌ Balance insuffisante. Vous avez ${sourceBalanceValue} ${sourceTicker} mais essayez d'en swapper ${swapAmount}.`);
+      logger.error(`\n❌ Balance insuffisante. Vous avez ${sourceBalanceValue} ${sourceTicker} mais essayez d'en swapper ${swapAmount}.`);
       // return null;
     }
 
-    console.log(`\n✅ Balance suffisante: ${sourceBalanceValue} ${sourceTicker} disponible pour swapper ${swapAmount} ${sourceTicker}.`);
+    logger.info(`\n✅ Balance suffisante: ${sourceBalanceValue} ${sourceTicker} disponible pour swapper ${swapAmount} ${sourceTicker}.`);
 
     // Vérifier la balance de tokens natifs pour les frais de gas
     // Cette vérification est particulièrement importante pour les chaînes EVM (Ethereum, BSC, etc.)
@@ -555,11 +581,11 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       );
 
       if (!nativeBalance) {
-        console.warn(`\n⚠️ Attention: Impossible de trouver la balance de ${nativeToken} pour les frais de gas.`);
-        console.warn('Assurez-vous d\'avoir suffisamment de tokens natifs pour couvrir les frais de transaction.');
+        logger.warn(`\n⚠️ Attention: Impossible de trouver la balance de ${nativeToken} pour les frais de gas.`);
+        logger.warn('Assurez-vous d\'avoir suffisamment de tokens natifs pour couvrir les frais de transaction.');
       } else {
         const nativeBalanceValue = nativeBalance.getValue("number");
-        console.log(`\n💰 Balance de tokens natifs pour les frais: ${nativeBalanceValue} ${nativeToken}`);
+        logger.info(`\n💰 Balance de tokens natifs pour les frais: ${nativeBalanceValue} ${nativeToken}`);
 
         // Estimation très basique des frais de gas minimum nécessaires
         // Ces valeurs sont approximatives et peuvent varier
@@ -573,33 +599,33 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
         const requiredGas = minGasRequired[effectiveSourceChain] || 0.01;
 
         if (nativeBalanceValue < requiredGas) {
-          console.warn(`\n⚠️ Attention: Votre balance de ${nativeToken} (${nativeBalanceValue}) pourrait être insuffisante pour couvrir les frais de gas.`);
-          console.warn(`Il est recommandé d'avoir au moins ${requiredGas} ${nativeToken} pour les transactions sur ${effectiveSourceChain}.`);
+          logger.warn(`\n⚠️ Attention: Votre balance de ${nativeToken} (${nativeBalanceValue}) pourrait être insuffisante pour couvrir les frais de gas.`);
+          logger.warn(`Il est recommandé d'avoir au moins ${requiredGas} ${nativeToken} pour les transactions sur ${effectiveSourceChain}.`);
         } else {
-          console.log(`\n✅ Balance de tokens natifs suffisante pour les frais de gas.`);
+          logger.info(`\n✅ Balance de tokens natifs suffisante pour les frais de gas.`);
         }
       }
     }
 
     // ÉTAPE 1: Obtenir un devis de swap (quote)
-    console.log("\nℹ️ ÉTAPE 1: Obtention d'un devis de swap (quote)...");
+    logger.info("\nℹ️ ÉTAPE 1: Obtention d'un devis de swap (quote)...");
 
     // Débogage détaillé de l'API SwapKit
-    console.log('\nDébogage détaillé de l\'API SwapKit:');
-    console.log('- Type de swapKit.api:', typeof swapKit.api);
-    console.log('- Contenu de swapKit.api:', swapKit.api);
+    logger.info('\nDébogage détaillé de l\'API SwapKit:');
+    logger.info('- Type de swapKit.api:', typeof swapKit.api);
+    logger.info('- Contenu de swapKit.api:', swapKit.api);
 
     // Vérifier si la clé API est configurée
     if (!swapKit.api || !swapKit.api.getSwapQuote) {
-      console.error("\n❌ API SwapKit non disponible. Vérifiez que votre clé API est configurée correctement.");
-      console.error("La clé API actuelle est:", process.env.SWAPKIT_API_KEY || 'Non définie');
-      console.error("Si vous voyez 'VOTRE_CLE_API_ICI', vous devez définir une clé API valide.");
+      logger.error("\n❌ API SwapKit non disponible. Vérifiez que votre clé API est configurée correctement.");
+      logger.error("La clé API actuelle est:", process.env.SWAPKIT_API_KEY || 'Non définie');
+      logger.error("Si vous voyez 'VOTRE_CLE_API_ICI', vous devez définir une clé API valide.");
 
       // Essayer d'utiliser directement l'API de ThorChain
-      console.log("\nℹ️ Tentative d'utilisation directe de l'API ThorChain...");
+      logger.info("\nℹ️ Tentative d'utilisation directe de l'API ThorChain...");
       if (swapKit.thorchain && swapKit.thorchain.swap) {
-        console.log("\n✅ L'API ThorChain est disponible. Vous pouvez utiliser swapKit.thorchain.swap directement.");
-        console.log("Exemple: swapKit.thorchain.swap({ assetValue: sourceAsset, destinationAsset: 'BNB.BNB' })");
+        logger.info("\n✅ L'API ThorChain est disponible. Vous pouvez utiliser swapKit.thorchain.swap directement.");
+        logger.info("Exemple: swapKit.thorchain.swap({ assetValue: sourceAsset, destinationAsset: 'BNB.BNB' })");
       }
 
       return null;
@@ -617,33 +643,33 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       // Utiliser le fournisseur préféré s'il est spécifié, sinon utiliser la liste des fournisseurs
     };
 
-    console.log("Requête de devis:", quoteRequest);
+    logger.info("Requête de devis:", quoteRequest);
 
     // Obtenir le devis de swap
     let quoteResponse;
     try {
-      console.log("\n⏳ Appel de l'API getSwapQuote...");
+      logger.info("\n⏳ Appel de l'API getSwapQuote...");
       quoteResponse = await swapKit.api.getSwapQuote(quoteRequest);
-      console.log("✅ Devis de swap obtenu avec succès.");
+      logger.info("✅ Devis de swap obtenu avec succès.");
 
       // Afficher un résumé des routes disponibles
       if (quoteResponse && quoteResponse.routes && quoteResponse.routes.length > 0) {
-        console.log(`Nombre de routes disponibles: ${quoteResponse.routes.length}`);
-        console.log(`Meilleure route: ${quoteResponse.routes[0].provider}`);
+        logger.info(`Nombre de routes disponibles: ${quoteResponse.routes.length}`);
+        logger.info(`Meilleure route: ${quoteResponse.routes[0].provider}`);
       } else {
-        console.log("Aucune route disponible dans la réponse.");
+        logger.info("Aucune route disponible dans la réponse.");
       }
     } catch (error) {
-      console.error("\n❌ Erreur lors de l'obtention du devis de swap:", error);
-      console.error("Détails de l'erreur:", error.message);
+      logger.error("\n❌ Erreur lors de l'obtention du devis de swap:", error);
+      logger.error("Détails de l'erreur:", error.message);
 
       // Vérifier si c'est une erreur api_v2_server_error
       if (error.message && error.message.includes('api_v2_server_error')) {
-        console.error("\n⚠️ Erreur de serveur API V2 détectée. Cela peut indiquer qu'aucune route n'est disponible pour ce swap.");
+        logger.error("\n⚠️ Erreur de serveur API V2 détectée. Cela peut indiquer qu'aucune route n'est disponible pour ce swap.");
 
         // Vérifier si nous avons des détails supplémentaires dans la réponse
         if (error.response && error.response.data) {
-          console.error("Détails de l'erreur API:", error.response.data);
+          logger.error("Détails de l'erreur API:", error.response.data);
 
           // Vérifier si le message d'erreur mentionne des routes
           const errorData = error.response.data;
@@ -669,8 +695,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
       // Pour les autres types d'erreurs
       if (error.response) {
-        console.error("Statut de la réponse:", error.response.status);
-        console.error("Données de la réponse:", error.response.data);
+        logger.error("Statut de la réponse:", error.response.status);
+        logger.error("Données de la réponse:", error.response.data);
       }
 
       return {
@@ -682,7 +708,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Vérifier si nous avons des routes disponibles
     if (!quoteResponse || !quoteResponse.routes || quoteResponse.routes.length === 0) {
-      console.error("\n❌ Aucune route disponible pour ce swap. Vérifiez les paramètres ou réessayez plus tard.");
+      logger.error("\n❌ Aucune route disponible pour ce swap. Vérifiez les paramètres ou réessayez plus tard.");
       return {
         status: "error",
         error: "Aucune route disponible pour ce swap. Vérifiez les paires d'assets ou essayez avec un montant différent."
@@ -696,30 +722,30 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Sélectionner la meilleure route
     const bestRoute = sortedRoutes[0];
-    console.log("Provider de la meilleure route:", bestRoute);
+    logger.info("Provider de la meilleure route:", bestRoute);
 
     // Vérifier où se trouvent les avertissements
-    console.log("\n🔧 Débogage des avertissements:");
-    console.log("bestRoute contient warnings?", bestRoute.hasOwnProperty('warnings'));
-    console.log("quoteResponse contient warnings?", quoteResponse.hasOwnProperty('warnings'));
+    logger.info("\n🔧 Débogage des avertissements:");
+    logger.info("bestRoute contient warnings?", bestRoute.hasOwnProperty('warnings'));
+    logger.info("quoteResponse contient warnings?", quoteResponse.hasOwnProperty('warnings'));
 
     // Vérifier les avertissements de prix d'impact élevé
     const routeWarnings = bestRoute.warnings || [];
     const responseWarnings = quoteResponse.warnings || [];
 
-    console.log("Nombre d'avertissements dans bestRoute:", routeWarnings.length);
-    console.log("Nombre d'avertissements dans quoteResponse:", responseWarnings.length);
+    logger.info("Nombre d'avertissements dans bestRoute:", routeWarnings.length);
+    logger.info("Nombre d'avertissements dans quoteResponse:", responseWarnings.length);
 
     // Combiner les avertissements des deux sources
     const allWarnings = [...routeWarnings, ...responseWarnings];
 
     if (allWarnings.length > 0) {
-      console.log("\nListe de tous les avertissements:");
+      logger.info("\nListe de tous les avertissements:");
       allWarnings.forEach((warning, index) => {
-        console.log(`Avertissement ${index + 1}:`);
-        console.log(`- Code: ${warning.code || 'N/A'}`);
-        console.log(`- Affichage: ${warning.display || 'N/A'}`);
-        console.log(`- Détail: ${warning.tooltip || 'N/A'}`);
+        logger.info(`Avertissement ${index + 1}:`);
+        logger.info(`- Code: ${warning.code || 'N/A'}`);
+        logger.info(`- Affichage: ${warning.display || 'N/A'}`);
+        logger.info(`- Détail: ${warning.tooltip || 'N/A'}`);
       });
     }
 
@@ -727,25 +753,25 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     const highImpactWarning = allWarnings.find(warning => warning.code === "highPriceImpact");
 
       if (highImpactWarning) {
-        console.log(`\n⚠️ Avertissement détecté: ${highImpactWarning.code}`);
-        console.log(`Impact affiché: ${highImpactWarning.display}`);
-        console.log(`Détail: ${highImpactWarning.tooltip}`);
+        logger.info(`\n⚠️ Avertissement détecté: ${highImpactWarning.code}`);
+        logger.info(`Impact affiché: ${highImpactWarning.display}`);
+        logger.info(`Détail: ${highImpactWarning.tooltip}`);
 
         // Vérifier si l'impact de prix est disponible dans les métadonnées
         if (quoteResponse.meta && typeof quoteResponse.meta.priceImpact === 'number') {
           const priceImpact = quoteResponse.meta.priceImpact;
-          console.log(`Impact de prix: ${priceImpact}%`);
+          logger.info(`Impact de prix: ${priceImpact}%`);
 
           // Annuler le swap si l'impact de prix est inférieur à -50%
           if (priceImpact <= -50) {
-            console.error(`\n❌ Swap annulé: L'impact de prix est trop élevé (${priceImpact}%).`);
-            console.error("Pour des raisons de sécurité, les swaps avec un impact de prix inférieur à -50% sont automatiquement annulés.");
-            console.error("Vous pouvez essayer avec un montant plus petit ou un autre fournisseur.");
+            logger.error(`\n❌ Swap annulé: L'impact de prix est trop élevé (${priceImpact}%).`);
+            logger.error("Pour des raisons de sécurité, les swaps avec un impact de prix inférieur à -50% sont automatiquement annulés.");
+            logger.error("Vous pouvez essayer avec un montant plus petit ou un autre fournisseur.");
             return null;
           } else if (priceImpact <= -10) {
             // Avertissement pour les impacts entre -10% et -50%
-            console.warn(`\n⚠️ Attention: L'impact de prix est élevé (${priceImpact}%).`);
-            console.warn("Cela signifie que vous pourriez recevoir significativement moins que la valeur marchande.");
+            logger.warn(`\n⚠️ Attention: L'impact de prix est élevé (${priceImpact}%).`);
+            logger.warn("Cela signifie que vous pourriez recevoir significativement moins que la valeur marchande.");
           }
         } else if (highImpactWarning.display) {
           // Si l'impact numérique n'est pas disponible, essayer de parser l'affichage
@@ -753,23 +779,23 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
           const parsedImpact = parseFloat(displayImpact);
 
           if (!isNaN(parsedImpact) && parsedImpact <= -50) {
-            console.error(`\n❌ Swap annulé: L'impact de prix est trop élevé (${displayImpact}%).`);
-            console.error("Pour des raisons de sécurité, les swaps avec un impact de prix inférieur à -50% sont automatiquement annulés.");
-            console.error("Vous pouvez essayer avec un montant plus petit ou un autre fournisseur.");
+            logger.error(`\n❌ Swap annulé: L'impact de prix est trop élevé (${displayImpact}%).`);
+            logger.error("Pour des raisons de sécurité, les swaps avec un impact de prix inférieur à -50% sont automatiquement annulés.");
+            logger.error("Vous pouvez essayer avec un montant plus petit ou un autre fournisseur.");
             return null;
           }
         }
       }
 
-    console.log("\n✅ Devis obtenu avec succès!");
-    console.log(`Meilleure route: ${bestRoute.providers.join(", ")}`);
-    console.log(`Montant d'entrée: ${bestRoute.sellAmount} ${sourceAsset.toString()}`);
-    console.log(`Montant de sortie estimé: ${bestRoute.expectedBuyAmount} ${destinationAsset.toString()}`);
+    logger.info("\n✅ Devis obtenu avec succès!");
+    logger.info(`Meilleure route: ${bestRoute.providers.join(", ")}`);
+    logger.info(`Montant d'entrée: ${bestRoute.sellAmount} ${sourceAsset.toString()}`);
+    logger.info(`Montant de sortie estimé: ${bestRoute.expectedBuyAmount} ${destinationAsset.toString()}`);
     // Afficher le slippage configuré plutôt que d'essayer d'accéder à des propriétés qui peuvent ne pas exister
-    console.log(`Slippage configuré: ${slippage}%`);
+    logger.info(`Slippage configuré: ${slippage}%`);
 
     // Afficher des informations sur le fournisseur utilisé
-    console.log(`\nFournisseur utilisé: ${bestRoute.providers[0]}`);
+    logger.info(`\nFournisseur utilisé: ${bestRoute.providers[0]}`);
 
     // Vérifier le fournisseur utilisé
     const provider = bestRoute.providers[0];
@@ -777,52 +803,52 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     const providerStr = String(provider);
 
     if (providerStr.includes("THORCHAIN")) {
-      console.log("Utilisation de ThorChain pour le swap");
+      logger.info("Utilisation de ThorChain pour le swap");
     } else if (providerStr.includes("MAYA")) {
-      console.log("Utilisation de Maya Protocol pour le swap");
+      logger.info("Utilisation de Maya Protocol pour le swap");
     } else if (providerStr.includes("UNISWAP")) {
-      console.log("Utilisation d'Uniswap pour le swap");
+      logger.info("Utilisation d'Uniswap pour le swap");
     } else {
-      console.log(`Utilisation de ${providerStr} pour le swap`);
+      logger.info(`Utilisation de ${providerStr} pour le swap`);
     }
 
     // Afficher les informations sur les frais de réseau (gas)
-    console.log("\n💸 Informations sur les frais de réseau (gas):");
+    logger.info("\n💸 Informations sur les frais de réseau (gas):");
 
     // Débogage pour vérifier où se trouvent les informations sur les frais
-    console.log("\n🔧 Débogage des structures de données:");
-    console.log("bestRoute contient estimatedNetworkFees?", bestRoute.hasOwnProperty('estimatedNetworkFees'));
-    console.log("quoteResponse contient estimatedNetworkFees?", quoteResponse.hasOwnProperty('estimatedNetworkFees'));
+    logger.info("\n🔧 Débogage des structures de données:");
+    logger.info("bestRoute contient estimatedNetworkFees?", bestRoute.hasOwnProperty('estimatedNetworkFees'));
+    logger.info("quoteResponse contient estimatedNetworkFees?", quoteResponse.hasOwnProperty('estimatedNetworkFees'));
 
     // Afficher les propriétés de premier niveau de bestRoute
-    console.log("\nPropriétés de bestRoute:", Object.keys(bestRoute));
+    logger.info("\nPropriétés de bestRoute:", Object.keys(bestRoute));
 
     // Afficher les propriétés de premier niveau de quoteResponse
-    console.log("Propriétés de quoteResponse:", Object.keys(quoteResponse));
+    logger.info("Propriétés de quoteResponse:", Object.keys(quoteResponse));
 
     // Afficher les propriétés liées aux frais dans bestRoute
-    console.log("\nPropriétés liées aux frais dans bestRoute:");
-    if (bestRoute.estimatedNetworkFees) console.log("- estimatedNetworkFees");
-    if (bestRoute.fees) console.log("- fees");
-    if (bestRoute.estimatedGasFee) console.log("- estimatedGasFee");
-    if (bestRoute.estimatedGasPrice) console.log("- estimatedGasPrice");
-    if (bestRoute.estimatedGasLimit) console.log("- estimatedGasLimit");
+    logger.info("\nPropriétés liées aux frais dans bestRoute:");
+    if (bestRoute.estimatedNetworkFees) logger.info("- estimatedNetworkFees");
+    if (bestRoute.fees) logger.info("- fees");
+    if (bestRoute.estimatedGasFee) logger.info("- estimatedGasFee");
+    if (bestRoute.estimatedGasPrice) logger.info("- estimatedGasPrice");
+    if (bestRoute.estimatedGasLimit) logger.info("- estimatedGasLimit");
 
     // Examiner la structure des frais dans bestRoute
     if (bestRoute.fees) {
-      console.log("\nStructure de bestRoute.fees:", JSON.stringify(bestRoute.fees, null, 2));
+      logger.info("\nStructure de bestRoute.fees:", JSON.stringify(bestRoute.fees, null, 2));
     }
 
     // Examiner la structure de tx dans bestRoute
     if (bestRoute.tx) {
-      console.log("\nStructure de bestRoute.tx:");
-      console.log("- to:", bestRoute.tx.to);
-      console.log("- from:", bestRoute.tx.from);
-      console.log("- gas:", bestRoute.tx.gas);
-      console.log("- gasPrice:", bestRoute.tx.gasPrice);
-      console.log("- value:", bestRoute.tx.value);
+      logger.info("\nStructure de bestRoute.tx:");
+      logger.info("- to:", bestRoute.tx.to);
+      logger.info("- from:", bestRoute.tx.from);
+      logger.info("- gas:", bestRoute.tx.gas);
+      logger.info("- gasPrice:", bestRoute.tx.gasPrice);
+      logger.info("- value:", bestRoute.tx.value);
       // Ne pas afficher data car c'est trop long
-      console.log("- data: [trop long pour être affiché]");
+      logger.info("- data: [trop long pour être affiché]");
     }
 
     // Vérifier si les informations sur les frais sont disponibles
@@ -831,46 +857,46 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
       // Afficher les frais totaux si disponibles
       if (fees.totalFees) {
-        console.log(`Frais totaux estimés: ${fees.totalFees} USD`);
+        logger.info(`Frais totaux estimés: ${fees.totalFees} USD`);
       }
 
       // Afficher les frais détaillés par étape si disponibles
       if (fees.steps && fees.steps.length > 0) {
-        console.log("Détail des frais par étape:");
+        logger.info("Détail des frais par étape:");
         fees.steps.forEach((step, index) => {
-          console.log(`  Étape ${index + 1}: ${step.name || 'Sans nom'}`);
-          if (step.gasPrice) console.log(`    Prix du gas: ${step.gasPrice}`);
-          if (step.gasLimit) console.log(`    Limite de gas: ${step.gasLimit}`);
-          if (step.estimatedGasFee) console.log(`    Frais de gas estimés: ${step.estimatedGasFee} ${step.asset || 'USD'}`);
+          logger.info(`  Étape ${index + 1}: ${step.name || 'Sans nom'}`);
+          if (step.gasPrice) logger.info(`    Prix du gas: ${step.gasPrice}`);
+          if (step.gasLimit) logger.info(`    Limite de gas: ${step.gasLimit}`);
+          if (step.estimatedGasFee) logger.info(`    Frais de gas estimés: ${step.estimatedGasFee} ${step.asset || 'USD'}`);
         });
       }
 
       // Afficher les frais spécifiques à la chaîne si disponibles
-      if (fees.inboundFee) console.log(`Frais d'entrée: ${fees.inboundFee} ${fees.inboundFeeAsset || 'USD'}`);
-      if (fees.outboundFee) console.log(`Frais de sortie: ${fees.outboundFee} ${fees.outboundFeeAsset || 'USD'}`);
-      if (fees.affiliateFee) console.log(`Frais d'affiliation: ${fees.affiliateFee} ${fees.affiliateFeeAsset || 'USD'}`);
+      if (fees.inboundFee) logger.info(`Frais d'entrée: ${fees.inboundFee} ${fees.inboundFeeAsset || 'USD'}`);
+      if (fees.outboundFee) logger.info(`Frais de sortie: ${fees.outboundFee} ${fees.outboundFeeAsset || 'USD'}`);
+      if (fees.affiliateFee) logger.info(`Frais d'affiliation: ${fees.affiliateFee} ${fees.affiliateFeeAsset || 'USD'}`);
     } else {
-      console.log("Aucune information détaillée sur les frais n'est disponible pour cette route.");
+      logger.info("Aucune information détaillée sur les frais n'est disponible pour cette route.");
 
       // Essayer d'extraire les frais de gas à partir d'autres propriétés
       if (bestRoute.estimatedGasPrice) {
-        console.log(`Prix du gas estimé: ${bestRoute.estimatedGasPrice}`);
+        logger.info(`Prix du gas estimé: ${bestRoute.estimatedGasPrice}`);
       }
       if (bestRoute.estimatedGasLimit) {
-        console.log(`Limite de gas estimée: ${bestRoute.estimatedGasLimit}`);
+        logger.info(`Limite de gas estimée: ${bestRoute.estimatedGasLimit}`);
       }
       if (bestRoute.estimatedGasFee) {
-        console.log(`Frais de gas estimés: ${bestRoute.estimatedGasFee}`);
+        logger.info(`Frais de gas estimés: ${bestRoute.estimatedGasFee}`);
       }
     }
 
     // ÉTAPE 2: Exécuter le swap avec la meilleure route
-    console.log("\nℹ️ ÉTAPE 2: Exécution du swap avec la meilleure route...");
+    logger.info("\nℹ️ ÉTAPE 2: Exécution du swap avec la meilleure route...");
 
     // Demander confirmation à l'utilisateur si nécessaire
     if (waitForConfirmation) {
-      console.log("\n⚠️ ATTENTION: Vous êtes sur le point d'exécuter un swap réel qui engagera vos fonds.");
-      console.log("Appuyez sur Entrée pour confirmer et exécuter le swap, ou Ctrl+C pour annuler...");
+      logger.info("\n⚠️ ATTENTION: Vous êtes sur le point d'exécuter un swap réel qui engagera vos fonds.");
+      logger.info("Appuyez sur Entrée pour confirmer et exécuter le swap, ou Ctrl+C pour annuler...");
 
       // Simuler une attente de l'entrée utilisateur (dans un environnement réel, vous utiliseriez readline ou un autre mécanisme)
       await new Promise(resolve => setTimeout(resolve, confirmationTimeout));
@@ -886,19 +912,19 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     // Ajouter le nom du plugin si spécifié
     if (pluginName) {
       swapParams.pluginName = pluginName;
-      console.log(`Utilisation du plugin spécifié: ${pluginName}`);
+      logger.info(`Utilisation du plugin spécifié: ${pluginName}`);
     }
 
     // Utiliser une assertion de type pour contourner les problèmes de typage
-    console.log("\n[DEBUG] Exécution du swap avec les paramètres:", swapParams);
+    logger.debug("\nExécution du swap avec les paramètres:", swapParams);
     // const txHash = "DEBUG_TX_HASH"; // Pour le débogage, on utilise une valeur factice
     // Dans un environnement réel, décommentez la ligne suivante:
     const txHash = await (swapKit.swap as any)(swapParams);
 
     // ÉTAPE 3: Suivre la transaction
-    console.log("\nℹ️ ÉTAPE 3: Suivi de la transaction...");
-    console.log(`\n✅ Swap initié avec succès!`);
-    console.log(`Transaction hash: ${txHash}`);
+    logger.info("\nℹ️ ÉTAPE 3: Suivi de la transaction...");
+    logger.info(`\n✅ Swap initié avec succès!`);
+    logger.info(`Transaction hash: ${txHash}`);
 
     // Générer l'URL de l'explorateur
     // Déterminer la chaîne appropriée pour l'explorateur en fonction du provider et de la route
@@ -907,14 +933,14 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
                          effectiveSourceChain;
 
     const explorerUrl = swapKit.getExplorerTxUrl({ chain: explorerChain, txHash });
-    console.log(`Explorer URL: ${explorerUrl}`);
+    logger.info(`Explorer URL: ${explorerUrl}`);
 
     // Attendre que la transaction soit confirmée (dans un environnement réel, vous utiliseriez un mécanisme de polling)
-    console.log("\nAttente de la confirmation de la transaction...");
-    console.log("Ce processus peut prendre plusieurs minutes. Veuillez consulter l'explorateur pour plus de détails.");
+    logger.info("\nAttente de la confirmation de la transaction...");
+    logger.info("Ce processus peut prendre plusieurs minutes. Veuillez consulter l'explorateur pour plus de détails.");
 
     // Afficher le résumé des logs réseau
-    console.log("\n===== Résumé des appels réseau =====\n");
+    logger.info("\n===== Résumé des appels réseau =====\n");
     printNetworkSummary();
 
     return {
@@ -927,10 +953,10 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       expectedOutput: bestRoute.expectedBuyAmount,
     };
   } catch (error) {
-    console.error("\n❌ Erreur lors de l'exécution du swap:", error);
+    logger.error("\n❌ Erreur lors de l'exécution du swap:", error);
 
     // Afficher le résumé des logs réseau même en cas d'erreur
-    console.log("\n===== Résumé des appels réseau (avant erreur) =====\n");
+    logger.info("\n===== Résumé des appels réseau (avant erreur) =====\n");
     printNetworkSummary();
 
     return {
@@ -947,7 +973,7 @@ if (require.main === module) {
     // Connecter le portefeuille
     const swapKit = getSwapKitClient();
     if (!swapKit) {
-      console.error("Impossible d'initialiser SwapKit");
+      logger.error("Impossible d'initialiser SwapKit");
       process.exit(1);
     }
 
@@ -955,8 +981,8 @@ if (require.main === module) {
     const phrase = process.env.MNEMONIC || "votre phrase mnémonique ici";
 
     if (phrase === "votre phrase mnémonique ici") {
-      console.error("\n⚠️ ATTENTION: Vous devez définir votre propre phrase mnémonique!");
-      console.error("Définissez la variable d'environnement MNEMONIC ou modifiez directement le code.\n");
+      logger.error("\n⚠️ ATTENTION: Vous devez définir votre propre phrase mnémonique!");
+      logger.error("Définissez la variable d'environnement MNEMONIC ou modifiez directement le code.\n");
       process.exit(1);
     }
 
@@ -985,7 +1011,7 @@ if (require.main === module) {
       Chain.Solana
     ];
 
-    console.log(`Connexion de toutes les chaînes disponibles: ${allChains.join(', ')}...`);
+    logger.info(`Connexion de toutes les chaînes disponibles: ${allChains.join(', ')}...`);
 
     swapKit.connectKeystore(allChains, phrase)
       .then(() => {
@@ -994,7 +1020,7 @@ if (require.main === module) {
         executeRealSwap({ amount });
       })
       .catch((error: Error) => {
-        console.error("Erreur lors de la connexion du portefeuille:", error);
+        logger.error("Erreur lors de la connexion du portefeuille:", error);
         process.exit(1);
       });
   });
