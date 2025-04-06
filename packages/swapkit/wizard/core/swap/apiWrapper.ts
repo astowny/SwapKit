@@ -1,12 +1,24 @@
 import { SwapKitApi } from '@swapkit/api';
 import { withNetworkMonitoring } from './networkMonitor';
 
+// Configuration de base pour les API
+const API_CONFIG = {
+  baseUrl: process.env.SWAPKIT_API_URL || 'https://api.swapkit.dev',
+  devBaseUrl: process.env.SWAPKIT_DEV_API_URL || 'https://dev-api.swapkit.dev',
+};
+
+// Fonction pour obtenir l'URL de base
+const getBaseUrl = (isDev?: boolean) => {
+  const baseUrl = isDev ? API_CONFIG.devBaseUrl : API_CONFIG.baseUrl;
+  // S'assurer que l'URL se termine par un slash
+  return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+};
+
 // Wrapper pour getSwapQuote
 export const getSwapQuote = withNetworkMonitoring(
   SwapKitApi.getSwapQuote,
   (searchParams, isDev) => {
-    const baseUrl = isDev ? 'https://dev-api.thorswap.net' : 'https://api.thorswap.net';
-    return `${baseUrl}/thorchain/quote`;
+    return `${getBaseUrl(isDev)}quote`;
   },
   'POST'
 );
@@ -15,8 +27,7 @@ export const getSwapQuote = withNetworkMonitoring(
 export const getPrice = withNetworkMonitoring(
   SwapKitApi.getPrice,
   (body, isDev) => {
-    const baseUrl = isDev ? 'https://dev-api.thorswap.net' : 'https://api.thorswap.net';
-    return `${baseUrl}/thorchain/price`;
+    return `${getBaseUrl(isDev)}price`;
   },
   'POST'
 );
@@ -25,8 +36,7 @@ export const getPrice = withNetworkMonitoring(
 export const getGasRate = withNetworkMonitoring(
   SwapKitApi.getGasRate,
   (isDev) => {
-    const baseUrl = isDev ? 'https://dev-api.thorswap.net' : 'https://api.thorswap.net';
-    return `${baseUrl}/thorchain/gas_rate`;
+    return `${getBaseUrl(isDev)}gas_rate`;
   },
   'GET'
 );
@@ -35,7 +45,16 @@ export const getGasRate = withNetworkMonitoring(
 export const getTrackerDetails = withNetworkMonitoring(
   SwapKitApi.getTrackerDetails,
   (payload, apiKey, referer) => {
-    return `https://api.thorswap.net/thorchain/tracker/${payload.txId}`;
+    return `${getBaseUrl()}tracker/${payload.txId}`;
+  },
+  'GET'
+);
+
+// Wrapper pour getTokens
+export const getTokens = withNetworkMonitoring(
+  SwapKitApi.getTokens || ((provider?: string) => fetch(`${getBaseUrl()}tokens${provider ? `?provider=${provider}` : ''}`).then(res => res.json())),
+  (provider) => {
+    return `${getBaseUrl()}tokens${provider ? `?provider=${provider}` : ''}`;
   },
   'GET'
 );
@@ -47,4 +66,7 @@ export const SwapKitApiWithMonitoring = {
   getPrice,
   getGasRate,
   getTrackerDetails,
+  getTokens,
+  // Configuration
+  config: API_CONFIG,
 };

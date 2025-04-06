@@ -2,6 +2,7 @@ import { Chain, FeeOption, ProviderName, AssetValue } from "../../../core/src/in
 import { getSwapKitClient } from "./client";
 import { checkPriceImpact, logGasFees } from "./checkPriceImpact";
 import { printNetworkSummary, clearNetworkLogs } from "./networkUtils";
+import { validateAsset, TokenProvider } from "./tokenValidator";
 
 // Ajout de débogage pour vérifier la source de AssetValue
 console.log("[DEBUG] AssetValue module:", AssetValue);
@@ -115,6 +116,8 @@ export interface RealSwapOptions {
   preferredProvider?: ProviderName;
   /** Nom du plugin à utiliser pour le swap (par défaut: déterminé automatiquement) */
   pluginName?: string;
+  /** Forcer l'exécution même si les assets ne sont pas reconnus (par défaut: false) */
+  forceExecution?: boolean;
 }
 
 /**
@@ -129,6 +132,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
   // Réinitialiser les logs réseau pour cette exécution
   clearNetworkLogs();
   console.log("Logs réseau réinitialisés pour cette exécution");
+
+
 
   // Charger explicitement les assets statiques
   console.log("[DEBUG] Chargement des assets statiques...");
@@ -157,7 +162,9 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     // Nouvelles options pour les fournisseurs
     providers = undefined,
     preferredProvider,
-    pluginName
+    pluginName,
+    // Option pour forcer l'exécution même si les assets ne sont pas reconnus
+    forceExecution = false
   } = options;
   try {
     // Extraire les chaînes à partir des assets si elles ne sont pas spécifiées
@@ -187,6 +194,85 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     console.log(`Chaîne source: ${effectiveSourceChain}`);
     console.log(`Chaîne destination: ${effectiveDestinationChain}`);
 
+    // Déterminer le fournisseur approprié en fonction des chaînes
+    const determineProvider = () => {
+      // Si les deux chaînes sont THORChain ou Maya, utiliser le fournisseur correspondant
+      if (effectiveSourceChain === Chain.THORChain && effectiveDestinationChain === Chain.THORChain) {
+        return TokenProvider.THORCHAIN;
+      }
+      if (effectiveSourceChain === Chain.Maya && effectiveDestinationChain === Chain.Maya) {
+        return TokenProvider.MAYA;
+      }
+
+      // Si l'une des chaînes est Ethereum, essayer Uniswap
+      if (effectiveSourceChain === Chain.Ethereum || effectiveDestinationChain === Chain.Ethereum) {
+        return TokenProvider.UNISWAP_V3;
+      }
+
+      // Si l'une des chaînes est BSC, essayer PancakeSwap
+      if (effectiveSourceChain === Chain.BinanceSmartChain || effectiveDestinationChain === Chain.BinanceSmartChain) {
+        return TokenProvider.PANCAKESWAP;
+      }
+
+      // Par défaut, utiliser tous les fournisseurs
+      return TokenProvider.ALL;
+    };
+
+    const suggestedProvider = determineProvider();
+    console.log(`Fournisseur suggéré pour la validation des tokens: ${suggestedProvider || 'ALL'}`);
+
+    // Vérifier que les assets existent dans l'API SwapKit tokens
+    console.log("\nVérification des assets dans l'API SwapKit tokens...");
+
+    // Vérifier l'asset source
+    const sourceAssetValidation = await validateAsset(sourceAssetString, suggestedProvider);
+    console.log(`Asset source (${sourceAssetString}): ${sourceAssetValidation.isValid ? '✅ Valide' : '❌ Non valide'}`);
+    if (!sourceAssetValidation.isValid) {
+      console.warn(`⚠️ Avertissement: ${sourceAssetValidation.message}`);
+    } else if (sourceAssetValidation.token) {
+      console.log(`  Nom: ${sourceAssetValidation.token.name}`);
+      console.log(`  Décimales: ${sourceAssetValidation.token.decimals}`);
+      console.log(`  Fournisseur: ${sourceAssetValidation.provider || 'ALL'}`);
+      if (sourceAssetValidation.token.logoURI) {
+        console.log(`  Logo: ${sourceAssetValidation.token.logoURI}`);
+      }
+      if (sourceAssetValidation.token.coingeckoId) {
+        console.log(`  CoinGecko ID: ${sourceAssetValidation.token.coingeckoId}`);
+      }
+    }
+
+    // Vérifier l'asset destination
+    const destinationAssetValidation = await validateAsset(destinationAssetString, suggestedProvider);
+    console.log(`Asset destination (${destinationAssetString}): ${destinationAssetValidation.isValid ? '✅ Valide' : '❌ Non valide'}`);
+    if (!destinationAssetValidation.isValid) {
+      console.warn(`⚠️ Avertissement: ${destinationAssetValidation.message}`);
+    } else if (destinationAssetValidation.token) {
+      console.log(`  Nom: ${destinationAssetValidation.token.name}`);
+      console.log(`  Décimales: ${destinationAssetValidation.token.decimals}`);
+      console.log(`  Fournisseur: ${destinationAssetValidation.provider || 'ALL'}`);
+      if (destinationAssetValidation.token.logoURI) {
+        console.log(`  Logo: ${destinationAssetValidation.token.logoURI}`);
+      }
+      if (destinationAssetValidation.token.coingeckoId) {
+        console.log(`  CoinGecko ID: ${destinationAssetValidation.token.coingeckoId}`);
+      }
+    }
+
+    // Si l'un des assets n'est pas valide, demander confirmation à l'utilisateur
+    if (!sourceAssetValidation.isValid || !destinationAssetValidation.isValid) {
+      if (!forceExecution) {
+        console.warn("\n⚠️ Un ou plusieurs assets ne sont pas reconnus dans l'API SwapKit tokens.");
+        console.warn("Cela peut indiquer que vous utilisez un asset non supporté ou mal formaté.");
+        console.warn("Pour forcer l'exécution malgré cet avertissement, utilisez l'option 'forceExecution: true'.");
+        return {
+          status: "error",
+          error: "Assets non reconnus dans l'API SwapKit tokens. Utilisez forceExecution: true pour ignorer cette vérification."
+        };
+      } else {
+        console.warn("\n⚠️ Exécution forcée malgré des assets non reconnus.");
+      }
+    }
+
     // Connecter dynamiquement les chaînes nécessaires
     const swapKit = await getSwapKitClient([effectiveSourceChain, effectiveDestinationChain]);
 
@@ -215,27 +301,27 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Connecter toutes les chaînes disponibles directement
     const chainsToConnect = new Set<Chain>([
-      // Chain.Arbitrum,
-      // Chain.Avalanche,
-      // Chain.Base,
+      Chain.Arbitrum,
+      Chain.Avalanche,
+      Chain.Base,
       Chain.BinanceSmartChain, // erreur wallet_missing_api_key
-      // Chain.Bitcoin,
-      // Chain.BitcoinCash,
-      // Chain.Cosmos,
-      // Chain.Dash,
-      // Chain.Dogecoin,
+      Chain.Bitcoin,
+      Chain.BitcoinCash,
+      Chain.Cosmos,
+      Chain.Dash,
+      Chain.Dogecoin,
       Chain.Ethereum,
       // Chain.Fiat,
-      // Chain.Kujira,
-      // Chain.Litecoin,
+      Chain.Kujira,
+      Chain.Litecoin,
       Chain.Maya,
-      // Chain.Optimism,
+      Chain.Optimism,
       // Chain.Polkadot,
       // Chain.Chainflip, // erreur
-      // Chain.Polygon,
+      Chain.Polygon,
       // Chain.Radix,
       Chain.THORChain,
-      // Chain.Solana
+      Chain.Solana
     ]);
 
     // Ajouter également les chaînes source et destination pour s'assurer qu'elles sont incluses
@@ -534,7 +620,23 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     console.log("Requête de devis:", quoteRequest);
 
     // Obtenir le devis de swap
-    const quoteResponse = await swapKit.api.getSwapQuote(quoteRequest);
+    let quoteResponse;
+    try {
+      console.log("\n⏳ Appel de l'API getSwapQuote...");
+      quoteResponse = await swapKit.api.getSwapQuote(quoteRequest);
+      console.log("✅ Devis de swap obtenu avec succès.", quoteResponse);
+    } catch (error) {
+      console.error("\n❌ Erreur lors de l'obtention du devis de swap:", error);
+      console.error("Détails de l'erreur:", error.message);
+      if (error.response) {
+        console.error("Statut de la réponse:", error.response.status);
+        console.error("Données de la réponse:", error.response.data);
+      }
+      return {
+        status: "error",
+        error: `Erreur lors de l'obtention du devis de swap: ${error.message}`,
+      };
+    }
 
     if (!quoteResponse || !quoteResponse.routes || quoteResponse.routes.length === 0) {
       console.error("\n❌ Aucune route disponible pour ce swap. Vérifiez les paramètres ou réessayez plus tard.");
@@ -548,6 +650,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Sélectionner la meilleure route
     const bestRoute = sortedRoutes[0];
+    console.log("Provider de la meilleure route:", bestRoute);
 
     // Vérifier où se trouvent les avertissements
     console.log("\n🔧 Débogage des avertissements:");
@@ -614,7 +717,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     console.log("\n✅ Devis obtenu avec succès!");
     console.log(`Meilleure route: ${bestRoute.providers.join(", ")}`);
-    console.log(`Montant d'entrée: ${sourceAsset.toString()}`);
+    console.log(`Montant d'entrée: ${bestRoute.sellAmount} ${sourceAsset.toString()}`);
     console.log(`Montant de sortie estimé: ${bestRoute.expectedBuyAmount} ${destinationAsset.toString()}`);
     // Afficher le slippage configuré plutôt que d'essayer d'accéder à des propriétés qui peuvent ne pas exister
     console.log(`Slippage configuré: ${slippage}%`);
@@ -752,7 +855,12 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     console.log(`Transaction hash: ${txHash}`);
 
     // Générer l'URL de l'explorateur
-    const explorerUrl = swapKit.getExplorerTxUrl({ chain: Chain.THORChain, txHash });
+    // Déterminer la chaîne appropriée pour l'explorateur en fonction du provider et de la route
+    const explorerChain = (bestRoute.providers[0] as string).includes('THORCHAIN') ? Chain.THORChain :
+                         (bestRoute.providers[0] as string).includes('MAYACHAIN') ? Chain.Maya :
+                         effectiveSourceChain;
+
+    const explorerUrl = swapKit.getExplorerTxUrl({ chain: explorerChain, txHash });
     console.log(`Explorer URL: ${explorerUrl}`);
 
     // Attendre que la transaction soit confirmée (dans un environnement réel, vous utiliseriez un mécanisme de polling)

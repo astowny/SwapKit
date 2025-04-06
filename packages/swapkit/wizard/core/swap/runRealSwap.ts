@@ -28,10 +28,11 @@ const SWAP_CONFIG = {
     slippage: 0.5 // Slippage de 0.5%
   },
   // Exemple avec Maya Protocol
+  // TODO recuperer le identifier depuis l'api de swapkit /tokens : voir : https://api.swapkit.dev/docs/#/
   maya: {
-    sourceAssetString: "ETH.USDC",
-    destinationAssetString: "ETH.ETH",
-    amount: "5", // Montant à swapper (10 CACAO)
+    sourceAssetString: "MAYA.CACAO",
+    destinationAssetString: "MAYA.BTC",
+    amount: "6", // Montant à swapper (10 CACAO)
   }
 };
 

@@ -31,7 +31,7 @@ const defaultConfig: NetworkMonitorConfig = {
   logToFile: true,
   logFilePath: './network_logs.json',
   includeRequestPayload: true,
-  includeResponseData: false, // Peut être volumineux, désactivé par défaut
+  includeResponseData: true, // Peut être volumineux, désactivé par défaut
 };
 
 // Classe pour surveiller les appels réseau
@@ -42,7 +42,7 @@ export class NetworkMonitor {
 
   private constructor(config: Partial<NetworkMonitorConfig> = {}) {
     this.config = { ...defaultConfig, ...config };
-    
+
     // Créer le répertoire du fichier de log si nécessaire
     if (this.config.logToFile) {
       const dir = path.dirname(this.config.logFilePath);
@@ -86,7 +86,7 @@ export class NetworkMonitor {
     try {
       // Exécuter la requête
       result = await requestFn();
-      
+
       // Extraire le statut et les données si possible
       if (result && typeof result === 'object') {
         responseData = result;
@@ -94,7 +94,7 @@ export class NetworkMonitor {
           responseStatus = (result as any).status;
         }
       }
-      
+
       return result;
     } catch (err: any) {
       error = err.message || 'Unknown error';
@@ -177,11 +177,18 @@ export function withNetworkMonitoring<T extends (...args: any[]) => Promise<any>
   return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     const url = urlFn(...args);
     const requestPayload = args.length > 0 ? args[0] : undefined;
-    
+
+    // Utiliser directement la fonction originale sans ajouter la clé API
+    // car SwapKit gère déjà l'ajout de la clé API dans les en-têtes
+    const wrappedFn = async () => {
+      // Appeler la fonction originale avec les arguments d'origine
+      return fn(...args);
+    };
+
     return networkMonitor.logNetworkCall(
       url,
       method,
-      () => fn(...args),
+      wrappedFn,
       requestPayload
     );
   };
