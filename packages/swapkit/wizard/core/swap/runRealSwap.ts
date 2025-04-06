@@ -30,8 +30,8 @@ const SWAP_CONFIG = {
   // Exemple avec Maya Protocol
   // TODO recuperer le identifier depuis l'api de swapkit /tokens : voir : https://api.swapkit.dev/docs/#/
   maya: {
-    sourceAssetString: "THOR.RUNE",
-    destinationAssetString: "BTC.BTC",
+    sourceAssetString: "POL.USDC",
+    destinationAssetString: "ETH.ETH",
     amount: "100", // Montant à swapper (10 CACAO)
   }
 };

@@ -891,9 +891,9 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Utiliser une assertion de type pour contourner les problèmes de typage
     console.log("\n[DEBUG] Exécution du swap avec les paramètres:", swapParams);
-    const txHash = "DEBUG_TX_HASH"; // Pour le débogage, on utilise une valeur factice
+    // const txHash = "DEBUG_TX_HASH"; // Pour le débogage, on utilise une valeur factice
     // Dans un environnement réel, décommentez la ligne suivante:
-    // const txHash = await (swapKit.swap as any)(swapParams);
+    const txHash = await (swapKit.swap as any)(swapParams);
 
     // ÉTAPE 3: Suivre la transaction
     console.log("\nℹ️ ÉTAPE 3: Suivi de la transaction...");
