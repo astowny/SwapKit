@@ -2,9 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { executeRealSwap } from './packages/swapkit/wizard/core/swap/realSwap.ts';
+import { applyLogPatch } from './packages/swapkit/wizard/core/logPatch.ts';
 
 // Charger les variables d'environnement depuis .env
 dotenv.config();
+
+// Appliquer le patch pour nettoyer les logs
+applyLogPatch();
 
 const app = express();
 const PORT = process.env.PORT || 3023;
@@ -34,7 +38,8 @@ app.post('/api/swaps', async (req, res) => {
       destinationAssetString,
       amount,
       slippage,
-      enableDebug: false // Désactiver les logs de débogage par défaut
+      enableDebug: false, // Désactiver les logs de débogage par défaut
+      verboseInfo: false  // Désactiver les logs détaillés par défaut
     });
 
     // Retourner le résultat du swap

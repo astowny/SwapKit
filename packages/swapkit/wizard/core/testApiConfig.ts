@@ -1,4 +1,5 @@
 import { getSwapKitClient } from "./client";
+import { cleanSwapKitForLogging } from "./swap/walletLogger";
 
 /**
  * Script de test pour vérifier la configuration de l'API SwapKit
@@ -10,6 +11,9 @@ import { getSwapKitClient } from "./client";
  */
 
 async function testApiConfiguration() {
+  // Appliquer le patch pour nettoyer les logs
+  applyLogPatch();
+
   console.log("Test de la configuration de l'API SwapKit...");
 
   // Obtenir le client SwapKit
@@ -24,7 +28,9 @@ async function testApiConfiguration() {
   console.log("✅ SwapKit initialisé avec succès");
 
   console.log("\nInformation sur le client SwapKit :");
-  console.log("- Propriétés disponibles :", Object.keys(swapKit));
+  // Utiliser notre utilitaire de nettoyage pour éviter d'afficher trop de détails
+  const cleanedSwapKit = cleanSwapKitForLogging(swapKit);
+  console.log("- Propriétés disponibles :", Object.keys(cleanedSwapKit));
 
   // Vérifier si l'API est disponible
   if (!swapKit.api) {
@@ -37,7 +43,12 @@ async function testApiConfiguration() {
 
   console.log("\nInformation sur l'API SwapKit :");
   console.log("- Type de swapKit.api :", typeof swapKit.api);
-  console.log("- Propriétés de swapKit.api :", Object.keys(swapKit.api));
+  // Afficher seulement les propriétés de l'API, pas les objets complets
+  if (swapKit.api) {
+    console.log("- Propriétés de swapKit.api :", Object.keys(swapKit.api));
+  } else {
+    console.log("- Propriétés de swapKit.api : Non disponible");
+  }
 
   // Vérifier si la méthode getSwapQuote est disponible
   if (!swapKit.api.getSwapQuote) {

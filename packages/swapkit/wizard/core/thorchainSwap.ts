@@ -1,9 +1,14 @@
 import { AssetValue, Chain, FeeOption } from "@swapkit/core";
 import { getSwapKitClient } from "./client";
+import { cleanSwapKitForLogging } from "./swap/walletLogger";
+import { applyLogPatch } from "./logPatch";
 
 // Fonction pour exécuter un swap direct via le plugin ThorChain
 export async function executeThorchainSwap(runeAmount = "1") {
   try {
+    // Appliquer le patch pour nettoyer les logs
+    applyLogPatch();
+
     // Charger les variables d'environnement
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -51,12 +56,14 @@ export async function executeThorchainSwap(runeAmount = "1") {
 
     // Débogage SwapKit
     console.log('\nDébogage SwapKit:');
-    console.log('- swapKit object keys:', Object.keys(swapKit));
-    console.log('- swapKit.thorchain exists:', !!swapKit.thorchain);
+    // Utiliser notre utilitaire de nettoyage pour éviter d'afficher trop de détails
+    const cleanedSwapKit = cleanSwapKitForLogging(swapKit);
+    console.log('- swapKit object keys:', Object.keys(cleanedSwapKit));
+    console.log('- swapKit.thorchain exists:', !!cleanedSwapKit.thorchain);
 
-    if (swapKit.thorchain) {
-      console.log('- swapKit.thorchain object keys:', Object.keys(swapKit.thorchain));
-      console.log('- swapKit.thorchain.swap exists:', !!swapKit.thorchain.swap);
+    if (cleanedSwapKit.thorchain) {
+      console.log('- swapKit.thorchain object keys:', Object.keys(cleanedSwapKit.thorchain));
+      console.log('- swapKit.thorchain.swap exists:', !!cleanedSwapKit.thorchain.swap);
     }
 
     // Vérifier si nous pouvons utiliser le plugin ThorChain directement

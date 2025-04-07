@@ -150,6 +150,7 @@ const call = async <T>(
       await estimateGasPrices(provider, isEIP1559Compatible)
     )[feeOption];
 
+    console.log("get function estimate gas");
     const gasLimit = await contract.getFunction(funcName).estimateGas(...funcParams, txOverrides);
 
     // @ts-expect-error
@@ -452,6 +453,7 @@ const sendTransaction = async (
       : {};
   let gasLimit: string;
   try {
+    console.log("estiiimating gas...");
     gasLimit = toHexString(
       parsedTxObject.gasLimit || ((await provider.estimateGas(parsedTxObject)) * 11n) / 10n,
     );

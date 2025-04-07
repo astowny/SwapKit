@@ -130,6 +130,7 @@ export const estimateTransactionFee = async (
   provider: Provider | BrowserProvider,
   isEIP1559Compatible = true,
 ) => {
+  console.log("estimating gas...");
   const gasPrices = (await estimateGasPrices(provider, isEIP1559Compatible))[feeOption];
   const gasLimit = await provider.estimateGas(txObject);
   const assetValue = AssetValue.from({ chain });

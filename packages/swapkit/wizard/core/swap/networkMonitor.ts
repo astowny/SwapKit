@@ -27,7 +27,7 @@ export interface NetworkMonitorConfig {
 // Configuration par défaut
 const defaultConfig: NetworkMonitorConfig = {
   enabled: true,
-  logToConsole: true,
+  logToConsole: false, // Désactivé par défaut pour réduire les logs
   logToFile: true,
   logFilePath: './network_logs.json',
   includeRequestPayload: true,

@@ -1,16 +1,16 @@
-import { Chain } from "@swapkit/core";
-import { createSwapKit } from "@swapkit/sdk";
+import { Chain } from "../../../../swapkit/core";
+import { createSwapKit } from "../../../../swapkit/sdk";
 
 // Importer les plugins disponibles
-import { ThorchainPlugin, MayachainPlugin } from "@swapkit/plugin-thorchain";
-import { EVMPlugin } from "@swapkit/plugin-evm";
-import { ChainflipPlugin } from "@swapkit/plugin-chainflip";
-import { KadoPlugin } from "@swapkit/plugin-kado";
-import { RadixPlugin } from "@swapkit/plugin-radix";
+import { ThorchainPlugin, MayachainPlugin } from "../../../../plugins/thorchain/src/index";
+import { EVMPlugin } from "../../../../plugins/evm/src/index";
+import { ChainflipPlugin } from "../../../../plugins/chainflip/src/index";
+import { KadoPlugin } from "../../../../plugins/kado/src/index";
+import { RadixPlugin } from "../../../../plugins/radix/src/index";
 
 // Importer les wallets
-import { keystoreWallet } from "@swapkit/wallet-keystore";
-import {wallets} from "@swapkit/wallets"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from
+// import { keystoreWallet } from "../../../../wallets/keystore/src/index";
+import {wallets} from "../../../../swapkit/wallets"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from
 
 // Importer notre factory d'API
 import { createEvmApiFactory, ApiType } from "./apiFactory";
@@ -96,7 +96,7 @@ const swapKitParams = {
   },
   // Wallet Keystore
   wallets: {
-    ...keystoreWallet,
+    // ...keystoreWallet,
     ...wallets
   }
 };
@@ -127,20 +127,17 @@ export const getSwapKitClient = (
 
     // Vérifier si le client est déjà en cache
     if (clientCache.has(key)) {
-      console.log(`Utilisation d'une instance SwapKit existante`);
+      // Suppression du log pour réduire le bruit
       return clientCache.get(key)!;
     }
 
     // Créer une nouvelle instance de SwapKit
-    console.log(`Création d'une nouvelle instance SwapKit`);
-    console.log(`Plugins configurés: THORChain, Maya, EVM`);
-    console.log(`Wallets configurés: Keystore`);
-    console.log(`Monitoring réseau activé: ${networkMonitor.getLogs().length >= 0 ? 'Oui' : 'Non'}`);
+    // Logs réduits pour éviter d'afficher trop d'informations
 
-    // Configurer le monitoring réseau
+    // Configurer le monitoring réseau avec logs réduits
     networkMonitor.configure({
       enabled: true,
-      logToConsole: true,
+      logToConsole: false, // Désactivé pour réduire les logs
       logToFile: true,
       logFilePath: './network_logs.json',
       includeRequestPayload: true,
@@ -157,17 +154,13 @@ export const getSwapKitClient = (
       client.api.getGasRate = SwapKitApiWithMonitoring.getGasRate;
       client.api.getTrackerDetails = SwapKitApiWithMonitoring.getTrackerDetails;
 
-      console.log(`API SwapKit wrappée avec monitoring réseau`);
+      // Suppression du log pour réduire le bruit
     }
 
     // Mettre en cache le client
     clientCache.set(key, client);
 
-    // Afficher les chaînes à connecter
-    if (chainsToConnect.length > 0) {
-      console.log(`Chaînes à connecter: ${chainsToConnect.join(', ')}`);
-      console.log(`Utilisez client.connectKeystore(chainsToConnect, phrase) pour connecter les portefeuilles`);
-    }
+    // Ne pas afficher les chaînes à connecter pour réduire les logs
 
     return client;
   } catch (error) {

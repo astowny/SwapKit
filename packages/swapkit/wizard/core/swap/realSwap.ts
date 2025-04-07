@@ -1,33 +1,42 @@
-import { Chain, FeeOption, ProviderName, AssetValue } from "@swapkit/core";
+import { Chain, FeeOption, ProviderName, AssetValue } from "../../../core";
 import { getSwapKitClient } from "./client";
 import { printNetworkSummary, clearNetworkLogs } from "./networkUtils";
 import { validateAsset, TokenProvider } from "./tokenValidator";
+import { cleanWalletForLogging, cleanSwapKitForLogging } from "./walletLogger";
+import { applyLogPatch } from "../logPatch";
 
 // Utilitaire de logging simple
 const logger = {
   // Fonction pour les logs essentiels (toujours affichés)
   info: (message: string, ...args: any[]) => {
-    console.log(message, ...args);
+    // Si le message commence par un espace ou un caractère spécial, il est considéré comme détaillé
+    const isDetailedLog = message.startsWith(' ') || message.startsWith('\n') || message.startsWith('-') || message.startsWith('  ');
+
+    // N'afficher les logs détaillés que si verboseInfo est activé
+    if (!isDetailedLog || globalLogConfig.verboseInfo) {
+      console.log(message, ...args);
+    }
   },
   // Fonction pour les logs de débogage (affichés uniquement si enableDebug est true)
   debug: (message: string, ...args: any[]) => {
     if (globalLogConfig.enableDebug) {
-      logger.debug(`${message}`, ...args);
+      console.debug(`${message}`, ...args);
     }
   },
   // Fonction pour les logs d'erreur (toujours affichés)
   error: (message: string, ...args: any[]) => {
-    logger.error(`[ERROR] ${message}`, ...args);
+    console.error(`[ERROR] ${message}`, ...args);
   },
   // Fonction pour les logs d'avertissement (toujours affichés)
   warn: (message: string, ...args: any[]) => {
-    logger.warn(`[WARN] ${message}`, ...args);
+    console.warn(`[WARN] ${message}`, ...args);
   }
 };
 
 // Configuration globale des logs
 const globalLogConfig = {
-  enableDebug: false
+  enableDebug: false,
+  verboseInfo: false // Contrôle le niveau de détail des logs d'information
 };
 
 // Fonction pour exécuter un swap réel avec des options personnalisables
@@ -141,6 +150,8 @@ export interface RealSwapOptions {
   forceExecution?: boolean;
   /** Activer les logs de débogage (par défaut: false) */
   enableDebug?: boolean;
+  /** Activer les logs détaillés (par défaut: false) */
+  verboseInfo?: boolean;
 }
 
 /**
@@ -149,8 +160,9 @@ export interface RealSwapOptions {
  * @returns Résultat du swap ou null en cas d'échec
  */
 export async function executeRealSwap(options: RealSwapOptions = {}) {
-  // Configurer les logs en fonction de l'option enableDebug
+  // Configurer les logs en fonction des options
   globalLogConfig.enableDebug = options.enableDebug || false;
+  globalLogConfig.verboseInfo = options.verboseInfo || false;
 
   logger.debug("Début de executeRealSwap");
   logger.debug("AssetValue avant loadStaticAssets:", AssetValue);
@@ -159,6 +171,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
   clearNetworkLogs();
   logger.info("Logs réseau réinitialisés pour cette exécution");
 
+  // Appliquer le patch pour nettoyer les logs
+  applyLogPatch();
 
 
   // Charger explicitement les assets statiques
@@ -310,19 +324,24 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     }
 
     // Vérifier que le client SwapKit est correctement configuré
-    logger.info('\nDébogage SwapKit:');
-    logger.info('- swapKit object keys:', Object.keys(swapKit));
-    logger.info('- swapKit.api exists:', !!swapKit.api);
+    if (globalLogConfig.verboseInfo) {
+      // Utiliser notre utilitaire pour nettoyer les logs
+      const cleanedSwapKit = cleanSwapKitForLogging(swapKit);
 
-    if (swapKit.api) {
-      logger.info('- swapKit.api object keys:', Object.keys(swapKit.api));
-      logger.info('- swapKit.api.getSwapQuote exists:', !!swapKit.api.getSwapQuote);
-    }
+      logger.info('\nDébogage SwapKit:');
+      logger.info('- swapKit object keys:', Object.keys(cleanedSwapKit));
+      logger.info('- swapKit.api exists:', !!cleanedSwapKit.api);
 
-    // Vérifier si la propriété thorchain existe
-    logger.info('- swapKit.thorchain exists:', !!swapKit.thorchain);
-    if (swapKit.thorchain) {
-      logger.info('- swapKit.thorchain object keys:', Object.keys(swapKit.thorchain));
+      if (cleanedSwapKit.api) {
+        logger.info('- swapKit.api object keys:', Object.keys(cleanedSwapKit.api));
+        logger.info('- swapKit.api.getSwapQuote exists:', !!cleanedSwapKit.api.getSwapQuote);
+      }
+
+      // Vérifier si la propriété thorchain existe
+      logger.info('- swapKit.thorchain exists:', !!cleanedSwapKit.thorchain);
+      if (cleanedSwapKit.thorchain) {
+        logger.info('- swapKit.thorchain object keys:', Object.keys(cleanedSwapKit.thorchain));
+      }
     }
 
     // Connecter toutes les chaînes disponibles directement
@@ -367,14 +386,28 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       await swapKit.connectKeystore(chainsArray, phrase);
       logger.info(`\n✅ Portefeuilles connectés avec succès!`);
 
-      // Afficher les adresses connectées pour chaque chaîne
-      logger.info("\n🔑 Adresses connectées:");
-      for (const chain of chainsArray) {
-        const address = swapKit.getAddress(chain);
-        if (address) {
-          logger.info(`${chain}: ${address}`);
-        } else {
-          logger.warn(`⚠️ Impossible d'obtenir l'adresse pour ${chain}`);
+      // Afficher les adresses connectées pour chaque chaîne (seulement si verboseInfo est activé)
+      if (globalLogConfig.verboseInfo) {
+        logger.info("\n🔑 Adresses connectées:");
+        for (const chain of chainsArray) {
+          const address = swapKit.getAddress(chain);
+          if (address) {
+            logger.info(`${chain}: ${address}`);
+          } else {
+            logger.warn(`⚠️ Impossible d'obtenir l'adresse pour ${chain}`);
+          }
+        }
+      } else {
+        // Afficher seulement les adresses source et destination
+        const sourceAddress = swapKit.getAddress(effectiveSourceChain);
+        const destAddress = swapKit.getAddress(effectiveDestinationChain);
+
+        if (sourceAddress) {
+          logger.info(`Adresse ${effectiveSourceChain}: ${sourceAddress}`);
+        }
+
+        if (destAddress && effectiveDestinationChain !== effectiveSourceChain) {
+          logger.info(`Adresse ${effectiveDestinationChain}: ${destAddress}`);
         }
       }
     } catch (error) {
@@ -391,7 +424,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     logger.info("\n✅ Plugin ThorChain disponible. Nous allons utiliser swapKit.thorchain.swap directement.");
 
-    logger.info(`\n⚡️ Exécution d'un swap réel de ${amount} ${sourceAssetString} vers ${destinationAssetString}...`);
+    // logger.info(`\n⚡️ Exécution d'un swap réel de ${amount} ${sourceAssetString} vers ${destinationAssetString}...`);
 
     // Déterminer l'adresse source
     // 1. Utiliser l'adresse source personnalisée si fournie
@@ -522,16 +555,46 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     // Vérifier la balance disponible
     logger.info('Verif de la balance')
-    const balance = await swapKit.getBalance(effectiveSourceChain, true);
+    let balance = [{
+      ticker: 'RUNE', 
+      chain: 'THORChain', 
+      value: 1000000000000000000000,
+      symbol: 'RUNE',
+      address: 'RUNE',
+      getValue(str) {
+        return 10000
+      }
+    }]
+    // Récupérer toutes les balances du wallet pour la chaîne source
+    // Cette méthode utilise swapKit.getBalance pour obtenir toutes les balances de la chaîne source
+    // puis recherche l'asset spécifique en vérifiant le ticker, la chaîne et l'adresse du contrat (pour les tokens ERC20)
+    balance = await swapKit.getBalance(effectiveSourceChain, true);
 
-    // Extraire le ticker de l'asset source (par exemple, "RUNE" de "THOR.RUNE")
+    // logger.info('balance', balance)
+
+    // Extraire le ticker et l'adresse du contrat de l'asset source (par exemple, "RUNE" de "THOR.RUNE" ou "USDC-0x..." de "ETH.USDC-0x...")
     const sourceAssetParts = sourceAssetString.split('.');
-    const sourceTicker = sourceAssetParts.length > 1 ? sourceAssetParts[1].split('-')[0] : sourceAssetParts[0];
+    const sourceTickerWithAddress = sourceAssetParts.length > 1 ? sourceAssetParts[1] : sourceAssetParts[0];
+    const sourceTickerParts = sourceTickerWithAddress.split('-');
+    const sourceTicker = sourceTickerParts[0];
+    const sourceTokenAddress = sourceTickerParts.length > 1 ? sourceTickerParts[1] : null;
 
-    const sourceBalance = balance.find(asset =>
-      asset.ticker === sourceTicker &&
-      asset.chain === effectiveSourceChain
-    );
+    // Chercher l'asset dans les balances
+    const sourceBalance = balance.find((asset) => {
+      // Vérifier si le ticker correspond
+      const tickerMatch = asset.ticker === sourceTicker ||
+                         asset.symbol.toLowerCase() === sourceTicker.toLowerCase();
+
+      // Vérifier si la chaîne correspond
+      const chainMatch = asset.chain === effectiveSourceChain;
+
+      // Vérifier si l'adresse correspond (pour les tokens ERC20)
+      const addressMatch = sourceTokenAddress ?
+                          (asset.address && asset.address.toLowerCase() === sourceTokenAddress.toLowerCase()) :
+                          true;
+
+      return tickerMatch && chainMatch && addressMatch;
+    });
 
     if (!sourceBalance) {
       logger.error(`\n❌ Aucune balance ${sourceAssetString} trouvée. Impossible d'exécuter le swap.`);
@@ -613,7 +676,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     // Débogage détaillé de l'API SwapKit
     logger.info('\nDébogage détaillé de l\'API SwapKit:');
     logger.info('- Type de swapKit.api:', typeof swapKit.api);
-    logger.info('- Contenu de swapKit.api:', swapKit.api);
+    // Utiliser notre utilitaire de nettoyage pour éviter d'afficher trop de détails
+    logger.info('- Propriétés de swapKit.api:', swapKit.api ? Object.keys(swapKit.api) : 'Non disponible');
 
     // Vérifier si la clé API est configurée
     if (!swapKit.api || !swapKit.api.getSwapQuote) {
@@ -643,7 +707,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       // Utiliser le fournisseur préféré s'il est spécifié, sinon utiliser la liste des fournisseurs
     };
 
-    logger.info("Requête de devis:", quoteRequest);
+    // logger.info("Requête de devis:", quoteRequest);
 
     // Obtenir le devis de swap
     let quoteResponse;
