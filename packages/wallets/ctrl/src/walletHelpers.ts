@@ -15,7 +15,7 @@ import {
   getRPCUrl,
 } from "../../../swapkit/helpers/src/index";
 import type { TransferParams } from "../../../toolboxes/cosmos/src/index";
-import type { PublicKey, SOLToolbox, SolanaProvider } from "../../../toolboxes/solana/src/index";
+import type { PublicKey, SOLToolbox, SolanaProvider, Transaction } from "../../../toolboxes/solana/src/index";
 
 type TransactionMethod = "transfer" | "deposit";
 
@@ -261,6 +261,16 @@ export function solanaTransfer(
 
     return solToolbox.broadcastTransaction(signedTransaction);
   };
+}
+
+export async function solanaSignTransaction(transaction: Transaction) {
+  const signedTransaction = await window.xfi?.solana.signTransaction(transaction);
+
+  if (!signedTransaction) {
+    throw new SwapKitError("core_transaction_failed");
+  }
+
+  return signedTransaction;
 }
 
 export function getCtrlMethods(provider: BrowserProvider) {

@@ -2,6 +2,7 @@ import { ChainflipPlugin } from "../../../plugins/chainflip/src/index";
 import { EVMPlugin } from "../../../plugins/evm/src/index";
 import { KadoPlugin } from "../../../plugins/kado/src/index";
 import { RadixPlugin } from "../../../plugins/radix/src/index";
+import { SolanaPlugin } from "../../../plugins/solana/src/index";
 import { MayachainPlugin, ThorchainPlugin } from "../../../plugins/thorchain/src/index";
 import {
   type PluginsType,
@@ -20,6 +21,7 @@ export const defaultPlugins = {
   ...KadoPlugin,
   ...MayachainPlugin,
   ...ThorchainPlugin,
+  ...SolanaPlugin,
   ...RadixPlugin,
 };
 
