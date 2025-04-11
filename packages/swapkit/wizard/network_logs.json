@@ -1,28 +1,15 @@
 [
   {
-    "timestamp": "2025-04-07T21:23:23.185Z",
-    "url": "https://api.swapkit.dev/tokens?provider=UNISWAP_V3",
-    "method": "GET",
-    "durationMs": 448.086959999986,
-    "requestPayload": "UNISWAP_V3"
-  },
-  {
-    "timestamp": "2025-04-07T21:23:23.656Z",
-    "url": "https://api.swapkit.dev/tokens",
-    "method": "GET",
-    "durationMs": 682.395623999997
-  },
-  {
-    "timestamp": "2025-04-07T21:23:29.771Z",
+    "timestamp": "2025-04-09T08:21:02.013Z",
     "url": "https://api.swapkit.dev/quote",
     "method": "POST",
-    "durationMs": 1944.4992300000158,
+    "durationMs": 2552.815536999842,
     "requestPayload": {
       "sellAsset": "ETH.USDC-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       "buyAsset": "ETH.ETH",
-      "sellAmount": "2.5",
-      "sourceAddress": "0x4cE8bEe6A8afC3debF669adC3b1727103cdBB649",
-      "destinationAddress": "0x4cE8bEe6A8afC3debF669adC3b1727103cdBB649",
+      "sellAmount": "0.004",
+      "sourceAddress": "0x33C6B77a63FC2ad01c5D4ff1B4e1E1473D467E76",
+      "destinationAddress": "0x33C6B77a63FC2ad01c5D4ff1B4e1E1473D467E76",
       "slippage": 3,
       "includeTx": true
     }

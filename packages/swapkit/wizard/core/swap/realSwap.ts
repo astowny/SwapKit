@@ -556,8 +556,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     // Vérifier la balance disponible
     logger.info('Verif de la balance')
     let balance = [{
-      ticker: 'RUNE', 
-      chain: 'THORChain', 
+      ticker: 'RUNE',
+      chain: 'THORChain',
       value: 1000000000000000000000,
       symbol: 'RUNE',
       address: 'RUNE',
@@ -606,7 +606,16 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     if (sourceBalanceValue < swapAmount) {
       logger.error(`\n❌ Balance insuffisante. Vous avez ${sourceBalanceValue} ${sourceTicker} mais essayez d'en swapper ${swapAmount}.`);
-      // return null;
+      return {
+        status: "error",
+        errorCode: "INSUFFICIENT_BALANCE",
+        errorMessage: `Balance insuffisante. Vous avez ${sourceBalanceValue} ${sourceTicker} mais essayez d'en swapper ${swapAmount}.`,
+        errorDetails: {
+          sourceBalanceValue,
+          swapAmount
+        },
+        timestamp: new Date().toISOString()
+      };
     }
 
     logger.info(`\n✅ Balance suffisante: ${sourceBalanceValue} ${sourceTicker} disponible pour swapper ${swapAmount} ${sourceTicker}.`);
@@ -707,6 +716,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       // Utiliser le fournisseur préféré s'il est spécifié, sinon utiliser la liste des fournisseurs
     };
 
+    // TODO gerer les erreurs : insufficient funds et autres
     // logger.info("Requête de devis:", quoteRequest);
 
     // Obtenir le devis de swap
@@ -1023,9 +1033,63 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     logger.info("\n===== Résumé des appels réseau (avant erreur) =====\n");
     printNetworkSummary();
 
+    // Analyser l'erreur pour fournir un message plus précis
+    let errorCode = "UNKNOWN_ERROR";
+    let errorMessage = error.message || "Erreur inconnue";
+    let errorDetails = {};
+
+    // Extraire les détails de l'erreur
+    if (error.error) {
+      // Cas des erreurs EVM structurées
+      errorDetails = {
+        code: error.error.code,
+        action: error.error.action,
+        reason: error.error.reason,
+        transaction: error.error.transaction,
+        data: error.error.data
+      };
+
+      // Gérer les cas spécifiques
+      if (error.error.reason === "STF") {
+        errorCode = "SAFE_TRANSACTION_FAILURE";
+        errorMessage = "La transaction a échoué pour des raisons de sécurité. Vérifiez votre balance et vos autorisations.";
+      } else if (error.error.code === "CALL_EXCEPTION") {
+        errorCode = "CONTRACT_EXECUTION_FAILED";
+        errorMessage = `L'exécution du contrat a échoué: ${error.error.reason || 'raison inconnue'}`;
+      }
+    } else if (error.shortMessage) {
+      // Cas des erreurs avec shortMessage
+      errorMessage = error.shortMessage;
+
+      if (error.shortMessage.includes("STF")) {
+        errorCode = "SAFE_TRANSACTION_FAILURE";
+        errorMessage = "La transaction a échoué pour des raisons de sécurité. Vérifiez votre balance et vos autorisations.";
+      } else if (error.shortMessage.includes("execution reverted")) {
+        errorCode = "CONTRACT_EXECUTION_FAILED";
+      }
+
+      errorDetails = {
+        info: error.info,
+        code: error.code
+      };
+    } else if (typeof error === 'string') {
+      // Cas où l'erreur est une simple chaîne
+      errorMessage = error;
+    }
+
+    // Gérer les erreurs liées aux balances insuffisantes
+    if (errorMessage.includes("balance") && errorMessage.includes("insuffisante")) {
+      errorCode = "INSUFFICIENT_BALANCE";
+    } else if (errorMessage.includes("Aucune balance")) {
+      errorCode = "NO_BALANCE_FOUND";
+    }
+
     return {
       status: "error",
-      error: error.message || "Erreur inconnue",
+      errorCode,
+      errorMessage,
+      errorDetails,
+      timestamp: new Date().toISOString()
     };
   }
 }

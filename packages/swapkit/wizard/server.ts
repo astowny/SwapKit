@@ -38,16 +38,71 @@ app.post('/api/swaps', async (req, res) => {
     });
 
     // Retourner le résultat du swap
-    return res.json({
-      status: swapResult?.status || 'success',
-      data: swapResult,
-      timestamp: new Date().toISOString()
-    });
+    if (swapResult?.status === 'error') {
+      // Déterminer le code HTTP approprié en fonction du type d'erreur
+      let statusCode = 500; // Code par défaut pour les erreurs serveur
+
+      // Mapper les codes d'erreur aux codes HTTP appropriés
+      const errorCodeToHttpStatus = {
+        'INSUFFICIENT_BALANCE': 400,
+        'NO_BALANCE_FOUND': 400,
+        'SAFE_TRANSACTION_FAILURE': 400,
+        'CONTRACT_EXECUTION_FAILED': 400,
+        'UNKNOWN_ERROR': 500
+      };
+
+      statusCode = errorCodeToHttpStatus[swapResult.errorCode] || 500;
+
+      return res.status(statusCode).json({
+        status: 'error',
+        errorCode: swapResult.errorCode,
+        error: swapResult.errorMessage,
+        details: swapResult.errorDetails,
+        timestamp: swapResult.timestamp || new Date().toISOString()
+      });
+    } else {
+      return res.json({
+        status: 'success',
+        data: swapResult,
+        timestamp: new Date().toISOString()
+      });
+    }
   } catch (error) {
     console.error('Erreur lors du traitement du swap:', error);
-    return res.status(500).json({
+
+    // Analyser l'erreur pour déterminer le code HTTP approprié
+    let statusCode = 500;
+    let errorCode = 'SERVER_ERROR';
+    let errorMessage = error.message || 'Une erreur est survenue lors du traitement du swap';
+    let errorDetails = {};
+
+    // Extraire les détails de l'erreur si disponibles
+    if (error.code === 'VALIDATION_ERROR' ||
+        errorMessage.includes('Paramètres manquants') ||
+        errorMessage.includes('invalid') ||
+        errorMessage.includes('Invalid')) {
+      statusCode = 400;
+      errorCode = 'VALIDATION_ERROR';
+    } else if (error.code === 'NOT_FOUND' || errorMessage.includes('not found')) {
+      statusCode = 404;
+      errorCode = 'NOT_FOUND';
+    }
+
+    // Capturer les détails supplémentaires si disponibles
+    if (error.details) {
+      errorDetails = error.details;
+    } else if (error.stack) {
+      // En environnement de développement uniquement, inclure la stack trace
+      if (process.env.NODE_ENV === 'development') {
+        errorDetails.stack = error.stack;
+      }
+    }
+
+    return res.status(statusCode).json({
       status: 'error',
-      error: error.message || 'Une erreur est survenue lors du traitement du swap',
+      errorCode,
+      error: errorMessage,
+      details: errorDetails,
       timestamp: new Date().toISOString()
     });
   }
