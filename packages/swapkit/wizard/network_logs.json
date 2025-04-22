@@ -1,17 +1,20 @@
 [
   {
-    "timestamp": "2025-04-09T08:21:02.013Z",
+    "timestamp": "2025-04-22T04:29:04.092Z",
     "url": "https://api.swapkit.dev/quote",
     "method": "POST",
-    "durationMs": 2552.815536999842,
+    "durationMs": 14216.415357999998,
+    "error": "undefined is not an object (evaluating 'C.error')",
     "requestPayload": {
-      "sellAsset": "ETH.USDC-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "sellAsset": "BSC.USDT-0x55d398326f99059ff775485246999027b3197955",
       "buyAsset": "ETH.ETH",
-      "sellAmount": "0.004",
+      "sellAmount": "0.005",
       "sourceAddress": "0x33C6B77a63FC2ad01c5D4ff1B4e1E1473D467E76",
       "destinationAddress": "0x33C6B77a63FC2ad01c5D4ff1B4e1E1473D467E76",
       "slippage": 3,
-      "includeTx": true
+      "includeTx": true,
+      "allowSmartContractSender": true,
+      "allowSmartContractReceiver": true
     }
   }
 ]

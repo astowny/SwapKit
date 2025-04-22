@@ -18,6 +18,7 @@ const getBaseUrl = (isDev?: boolean) => {
 export const getSwapQuote = withNetworkMonitoring(
   SwapKitApi.getSwapQuote,
   (searchParams, isDev) => {
+    console.log('post request to :', `${getBaseUrl(isDev)}quote`)
     return `${getBaseUrl(isDev)}quote`;
   },
   'POST'

@@ -570,7 +570,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     // puis recherche l'asset spécifique en vérifiant le ticker, la chaîne et l'adresse du contrat (pour les tokens ERC20)
     balance = await swapKit.getBalance(effectiveSourceChain, true);
 
-    // logger.info('balance', balance)
+    logger.info('balance', balance)
 
     // Extraire le ticker et l'adresse du contrat de l'asset source (par exemple, "RUNE" de "THOR.RUNE" ou "USDC-0x..." de "ETH.USDC-0x...")
     const sourceAssetParts = sourceAssetString.split('.');
@@ -598,7 +598,27 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
     if (!sourceBalance) {
       logger.error(`\n❌ Aucune balance ${sourceAssetString} trouvée. Impossible d'exécuter le swap.`);
-      return null;
+
+      // Construire une réponse d'erreur détaillée pour l'absence de balance
+      return {
+        status: "error",
+        errorCode: "NO_BALANCE_FOUND",
+        errorMessage: `Aucune balance ${sourceAssetString} trouvée pour l'adresse ${sourceAddress}`,
+        errorDetails: {
+          address: sourceAddress,
+          asset: sourceAssetString,
+          chain: effectiveSourceChain,
+          balancesDisponibles: balance.map(b => ({
+            chain: b.chain,
+            symbol: b.symbol,
+            ticker: b.ticker,
+            value: b.getValue("string"),
+            address: b.address
+          })),
+          requiredAction: "Veuillez approvisionner ce compte avec des tokens avant d'effectuer un swap"
+        },
+        timestamp: new Date().toISOString()
+      };
     }
 
     const sourceBalanceValue = sourceBalance.getValue("number");
@@ -714,28 +734,157 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       slippage, // Utiliser le slippage des options
       includeTx: true,
       // Utiliser le fournisseur préféré s'il est spécifié, sinon utiliser la liste des fournisseurs
+      allowSmartContractSender: true,
+      allowSmartContractReceiver: true,
+      // disableSecurityChecks: true,
+      // cfBoost: true,
+      // referrer: "string"
     };
 
     // TODO gerer les erreurs : insufficient funds et autres
     // logger.info("Requête de devis:", quoteRequest);
 
     // Obtenir le devis de swap
-    let quoteResponse;
+    let quoteResponse: any;
     try {
       logger.info("\n⏳ Appel de l'API getSwapQuote...");
+
+      // Vérifier que l'API est disponible
+      if (!swapKit.api || !swapKit.api.getSwapQuote) {
+        throw new Error("L'API SwapKit n'est pas disponible. Vérifiez votre configuration.");
+      }
+
+      // Afficher les paramètres de la requête pour le débogage
+      logger.info("Paramètres de la requête:", JSON.stringify({
+        sellAsset: quoteRequest.sellAsset,
+        buyAsset: quoteRequest.buyAsset,
+        sellAmount: quoteRequest.sellAmount,
+        sourceAddress: quoteRequest.sourceAddress,
+        destinationAddress: quoteRequest.destinationAddress,
+        slippage: quoteRequest.slippage
+      }, null, 2));
+
+      // Afficher la configuration de SwapKit
+      logger.info("Configuration SwapKit:", {
+        apiKeyConfigured: !!process.env.SWAPKIT_API_KEY,
+        apiKeyLength: process.env.SWAPKIT_API_KEY ? process.env.SWAPKIT_API_KEY.length : 0,
+        apiAvailable: !!swapKit.api,
+        apiMethods: swapKit.api ? Object.keys(swapKit.api) : []
+      });
+
       quoteResponse = await swapKit.api.getSwapQuote(quoteRequest);
+
+      // Vérifier si la réponse est vide
+      if (!quoteResponse || Object.keys(quoteResponse).length === 0) {
+        logger.error("\n❌ L'API a retourné une réponse vide.");
+
+        return {
+          status: "error",
+          errorCode: "EMPTY_QUOTE_RESPONSE",
+          errorMessage: "Impossible d'obtenir un devis de swap (SwapKit). Aucune route disponible pour cette paire d'actifs.",
+          errorDetails: {
+            requestedPair: {
+              sellAsset: quoteRequest.sellAsset,
+              buyAsset: quoteRequest.buyAsset,
+              sellAmount: quoteRequest.sellAmount
+            },
+            possibleCauses: [
+              "Paire d'actifs non supportée",
+              "Liquidité insuffisante pour cette paire",
+              "Montant trop petit ou trop grand",
+              "Problème temporaire avec le service de devis"
+            ],
+            suggestedActions: [
+              "Essayez avec un montant différent",
+              "Essayez une autre paire d'actifs",
+              "Réessayez ultérieurement"
+            ]
+          },
+          timestamp: new Date().toISOString()
+        };
+      }
+
       logger.info("✅ Devis de swap obtenu avec succès.");
 
       // Afficher un résumé des routes disponibles
-      if (quoteResponse && quoteResponse.routes && quoteResponse.routes.length > 0) {
+      if (quoteResponse.routes && quoteResponse.routes.length > 0) {
         logger.info(`Nombre de routes disponibles: ${quoteResponse.routes.length}`);
         logger.info(`Meilleure route: ${quoteResponse.routes[0].provider}`);
       } else {
         logger.info("Aucune route disponible dans la réponse.");
       }
     } catch (error) {
-      logger.error("\n❌ Erreur lors de l'obtention du devis de swap:", error);
-      logger.error("Détails de l'erreur:", error.message);
+      logger.error("\n❌ Erreur lors de l'obtention du devis de swap:");
+
+      // Afficher des informations détaillées sur l'erreur
+      logger.error("Message:", error.message || "Aucun message");
+      logger.error("Nom:", error.name || "Aucun nom");
+
+      // Afficher la stack trace en mode développement
+      if (process.env.NODE_ENV === 'development') {
+        logger.error("Stack:", error.stack || "Aucune stack");
+      }
+
+      // Gérer spécifiquement l'erreur "undefined is not an object (evaluating 'C.error')"
+      if (error.message && error.message.includes("undefined is not an object (evaluating 'C.error')")) {
+        logger.error("\n⚠️ Erreur spécifique détectée: Problème avec la réponse de l'API.");
+
+        return {
+          status: "error",
+          errorCode: "API_RESPONSE_PROCESSING_ERROR",
+          errorMessage: "Impossible de traiter la réponse de l'API (SwapKit) de devis. Format de réponse inattendu.",
+          errorDetails: {
+            requestedPair: {
+              sellAsset: quoteRequest.sellAsset,
+              buyAsset: quoteRequest.buyAsset,
+              sellAmount: quoteRequest.sellAmount
+            },
+            originalError: {
+              message: error.message,
+              name: error.name
+            },
+            possibleCauses: [
+              "Réponse vide ou mal formatée de l'API",
+              "Clé API invalide ou expirée",
+              "Problème temporaire avec le service API"
+            ],
+            suggestedActions: [
+              "Vérifiez votre clé API",
+              "Essayez avec une autre paire d'actifs",
+              "Réessayez ultérieurement"
+            ]
+          },
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Vérifier si l'erreur a une réponse (erreur HTTP)
+      if (error.response) {
+        logger.error("Données de réponse:", JSON.stringify(error.response.data, null, 2));
+        logger.error("Statut:", error.response.status);
+      }
+
+      // Afficher l'erreur complète (convertie en objet pour éviter les problèmes de sérialisation)
+      try {
+        const errorObj = JSON.stringify(error, (_key, value) => {
+          if (value instanceof Error) {
+            return {
+              message: value.message,
+              name: value.name,
+              stack: value.stack,
+              ...Object.getOwnPropertyNames(value).reduce((acc, prop) => {
+                acc[prop] = value[prop];
+                return acc;
+              }, {})
+            };
+          }
+          return value;
+        }, 2);
+        logger.error("Erreur complète:", errorObj);
+      } catch (jsonError) {
+        logger.error("Impossible de sérialiser l'erreur complète:", jsonError.message);
+        logger.error("Propriétés de l'erreur:", Object.getOwnPropertyNames(error));
+      }
 
       // Vérifier si c'est une erreur api_v2_server_error
       if (error.message && error.message.includes('api_v2_server_error')) {
@@ -937,7 +1086,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       // Afficher les frais détaillés par étape si disponibles
       if (fees.steps && fees.steps.length > 0) {
         logger.info("Détail des frais par étape:");
-        fees.steps.forEach((step, index) => {
+        fees.steps.forEach((step: any, index: number) => {
           logger.info(`  Étape ${index + 1}: ${step.name || 'Sans nom'}`);
           if (step.gasPrice) logger.info(`    Prix du gas: ${step.gasPrice}`);
           if (step.gasLimit) logger.info(`    Limite de gas: ${step.gasLimit}`);
@@ -1053,6 +1202,23 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       if (error.error.reason === "STF") {
         errorCode = "SAFE_TRANSACTION_FAILURE";
         errorMessage = "La transaction a échoué pour des raisons de sécurité. Vérifiez votre balance et vos autorisations.";
+        errorDetails = {
+          ...errorDetails,
+          reason: "STF",
+          description: "Safe Transaction Failure - La transaction a été rejetée pour des raisons de sécurité",
+          possibleCauses: [
+            "Balance insuffisante pour le token demandé",
+            "Autorisation (allowance) insuffisante pour le contrat",
+            "Slippage trop restrictif par rapport aux conditions du marché",
+            "Liquidité insuffisante dans le pool"
+          ],
+          suggestedActions: [
+            "Vérifiez votre balance de tokens",
+            "Approuvez le contrat pour dépenser vos tokens",
+            "Augmentez la tolérance de slippage",
+            "Essayez avec un montant plus petit"
+          ]
+        };
       } else if (error.error.code === "CALL_EXCEPTION") {
         errorCode = "CONTRACT_EXECUTION_FAILED";
         errorMessage = `L'exécution du contrat a échoué: ${error.error.reason || 'raison inconnue'}`;
@@ -1064,6 +1230,23 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       if (error.shortMessage.includes("STF")) {
         errorCode = "SAFE_TRANSACTION_FAILURE";
         errorMessage = "La transaction a échoué pour des raisons de sécurité. Vérifiez votre balance et vos autorisations.";
+        errorDetails = {
+          ...errorDetails,
+          reason: "STF",
+          description: "Safe Transaction Failure - La transaction a été rejetée pour des raisons de sécurité",
+          possibleCauses: [
+            "Balance insuffisante pour le token demandé",
+            "Autorisation (allowance) insuffisante pour le contrat",
+            "Slippage trop restrictif par rapport aux conditions du marché",
+            "Liquidité insuffisante dans le pool"
+          ],
+          suggestedActions: [
+            "Vérifiez votre balance de tokens",
+            "Approuvez le contrat pour dépenser vos tokens",
+            "Augmentez la tolérance de slippage",
+            "Essayez avec un montant plus petit"
+          ]
+        };
       } else if (error.shortMessage.includes("execution reverted")) {
         errorCode = "CONTRACT_EXECUTION_FAILED";
       }

@@ -133,4 +133,4 @@ async function checkUSDCBalanceWithSwapKit(address: string = "0x4cE8bEe6A8afC3de
 
 // Exécuter la fonction avec l'adresse par défaut
 // Vous pouvez passer une autre adresse en argument
-checkUSDCBalanceWithSwapKit();
+// checkUSDCBalanceWithSwapKit();

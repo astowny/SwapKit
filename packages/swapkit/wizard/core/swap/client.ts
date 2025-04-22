@@ -145,7 +145,26 @@ export const getSwapKitClient = (
     });
 
     // Créer l'instance avec les paramètres correctement structurés
-    const client = createSwapKit(swapKitParams as any);
+    // Créer le client SwapKit avec une meilleure gestion des erreurs
+    let client: any;
+    try {
+      client = createSwapKit(swapKitParams as any);
+
+      // Vérifier que le client a été créé correctement
+      if (!client) {
+        throw new Error("Le client SwapKit n'a pas été créé correctement");
+      }
+
+      // Vérifier que l'API est disponible
+      if (!client.api || !client.api.getSwapQuote) {
+        console.warn("Avertissement: L'API SwapKit n'est pas complètement disponible.");
+        console.warn("API disponible:", client.api ? Object.keys(client.api) : "null");
+        console.warn("Clé API configurée:", process.env.SWAPKIT_API_KEY ? "Oui" : "Non");
+      }
+    } catch (initError) {
+      console.error("Erreur lors de l'initialisation du client SwapKit:", initError);
+      throw initError;
+    }
 
     // Remplacer les méthodes d'API standard par nos méthodes wrappées avec monitoring
     if (client.api) {

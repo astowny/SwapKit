@@ -48,10 +48,12 @@ app.post('/api/swaps', async (req, res) => {
         'NO_BALANCE_FOUND': 400,
         'SAFE_TRANSACTION_FAILURE': 400,
         'CONTRACT_EXECUTION_FAILED': 400,
+        'EMPTY_QUOTE_RESPONSE': 404,
+        'API_RESPONSE_PROCESSING_ERROR': 502,
         'UNKNOWN_ERROR': 500
       };
 
-      statusCode = errorCodeToHttpStatus[swapResult.errorCode] || 500;
+      statusCode = swapResult.errorCode && errorCodeToHttpStatus[swapResult.errorCode as keyof typeof errorCodeToHttpStatus] || 500;
 
       return res.status(statusCode).json({
         status: 'error',
