@@ -73,7 +73,7 @@ export async function connectKeystoreWrapper(options: ConnectKeystoreOptions): P
         // Utiliser une approche différente pour connecter le wallet
         // Cette approche évite d'utiliser la fonction filterSupportedChains
         const result:any = await swapKit.connectKeystore(
-          chainsArray, // Utiliser un tableau avec une seule chaîne
+          chainsArray, // Utiliser un tableau
           options.phrase
         );
         

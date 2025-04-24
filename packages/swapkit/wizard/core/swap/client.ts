@@ -76,9 +76,9 @@ const swapKitParams = {
     walletConnectProjectId: '',
     stagenet: false,
     swapkitApiKey: process.env.SWAPKIT_API_KEY,
-    thorswapApiKey: process.env.THORSWAP_API_KEY,
-    covalentApiKey: process.env.COVALENT_API_KEY,
-    ethplorerApiKey: process.env.ETHPLORER_API_KEY
+    thorswapApiKey: process.env.THORSWAP_API_KEY, 
+    covalentApiKey: process.env.COVALENT_API_KEY, // non required
+    ethplorerApiKey: process.env.ETHPLORER_API_KEY 
   },
   // URLs RPC personnalisées (optionnel)
   rpcUrls: {

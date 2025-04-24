@@ -182,32 +182,12 @@ export async function getAllChainBalances() {
         let address = '';
 
         // Récupérer l'adresse pour cette chaîne
-        // Gérer spécifiquement le cas de Dogecoin qui peut causer des erreurs
-        if (chain === Chain.Dogecoin) {
-          console.log(`Traitement spécial pour ${chain} en raison de problèmes connus`);
-          try {
-            // Connecter le wallet avec la phrase mnémonique pour Dogecoin
-            await swapKit.connectKeystore({
-              phrase: process.env.MNEMONIC,
-              chains: [Chain.Dogecoin]
-            });
-            address = swapKit.getAddress(chain) || '';
-            if (address) {
-              console.log(`✅ Adresse pour ${chain}: ${address}`);
-            } else {
-              console.log(`❌ Aucune adresse trouvée pour ${chain}`);
-            }
-          } catch (dogeError) {
-            console.error(`Impossible de connecter le wallet pour ${chain}:`, dogeError.message);
-          }
+        // Traitement normal pour les autres chaînes
+        address = swapKit.getAddress(chain) || '';
+        if (address) {
+          console.log(`✅ Adresse pour ${chain}: ${address}`);
         } else {
-          // Traitement normal pour les autres chaînes
-          address = swapKit.getAddress(chain) || '';
-          if (address) {
-            console.log(`✅ Adresse pour ${chain}: ${address}`);
-          } else {
-            console.log(`❌ Aucune adresse trouvée pour ${chain}`);
-          }
+          console.log(`❌ Aucune adresse trouvée pour ${chain}`);
         }
 
         // Récupérer les balances pour la chaîne

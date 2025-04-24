@@ -123,7 +123,7 @@ const getWalletMethodsForChain = async ({
       const { getToolboxByChain } = await import("@swapkit/toolbox-utxo");
 
       const api = apis?.[chain];
-
+      console.log("in before get toolbox by chain");
       const toolbox = getToolboxByChain(chain)({
         rpcUrl,
         apiKey: blockchairApiKey,
