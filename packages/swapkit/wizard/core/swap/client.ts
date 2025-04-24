@@ -127,9 +127,12 @@ export const getSwapKitClient = (
 
     // Vérifier si le client est déjà en cache
     if (clientCache.has(key)) {
+      console.log("✅ Réutilisation d'une instance existante du client SwapKit");
+
       // Suppression du log pour réduire le bruit
       return clientCache.get(key)!;
     }
+    console.log("🆕 Création d'une nouvelle instance du client SwapKit");
 
     // Créer une nouvelle instance de SwapKit
     // Logs réduits pour éviter d'afficher trop d'informations

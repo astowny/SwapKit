@@ -129,11 +129,40 @@ app.post('/api/swaps', async (req, res) => {
 
 // Endpoint pour récupérer les balances de toutes les chaînes
 app.get('/api/balances', async (_: any, res: any) => {
+  // Démarrer le timer
+  const startTime = Date.now();
+  console.log(`⏱️ [${new Date().toISOString()}] Début de la récupération des balances...`);
+
   try {
     const result = await getAllChainBalances();
-    res.json(result);
+
+    // Calculer le temps d'exécution
+    const endTime = Date.now();
+    const executionTimeMs = endTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.log(`✅ [${new Date().toISOString()}] Récupération des balances terminée en ${executionTimeSec} secondes`);
+
+    // Ajouter le temps d'exécution à la réponse
+    const resultWithTiming = {
+      ...result,
+      _meta: {
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString()
+      }
+    };
+
+    res.json(resultWithTiming);
   } catch (error) {
-    console.error('Erreur lors de la récupération des balances:', error);
+    // Calculer le temps jusqu'à l'erreur
+    const errorTime = Date.now();
+    const executionTimeMs = errorTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.error(`❌ [${new Date().toISOString()}] Erreur lors de la récupération des balances après ${executionTimeSec} secondes:`, error);
+
     res.status(500).json({
       status: 'error',
       errorCode: 'BALANCE_RETRIEVAL_ERROR',
@@ -142,18 +171,28 @@ app.get('/api/balances', async (_: any, res: any) => {
         message: error.message,
         name: error.name
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      _meta: {
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        errorTime: new Date(errorTime).toISOString()
+      }
     });
   }
 });
 
 // Endpoint pour récupérer les balances d'une chaîne spécifique
 app.get('/api/balances/:chain', async (req: any, res: any) => {
-  try {
-    const { chain } = req.params;
+  // Démarrer le timer
+  const startTime = Date.now();
+  const { chain } = req.params;
+  console.log(`⏱️ [${new Date().toISOString()}] Début de la récupération des balances pour ${chain}...`);
 
+  try {
     // Vérifier si la chaîne est supportée
     if (!thorchainSupportedChains.includes(chain)) {
+      console.log(`❌ [${new Date().toISOString()}] Chaîne ${chain} non supportée`);
       return res.status(400).json({
         status: 'error',
         errorCode: 'UNSUPPORTED_CHAIN',
@@ -163,9 +202,35 @@ app.get('/api/balances/:chain', async (req: any, res: any) => {
     }
 
     const result = await getChainBalance(chain);
-    res.json(result);
+
+    // Calculer le temps d'exécution
+    const endTime = Date.now();
+    const executionTimeMs = endTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.log(`✅ [${new Date().toISOString()}] Récupération des balances pour ${chain} terminée en ${executionTimeSec} secondes`);
+
+    // Ajouter le temps d'exécution à la réponse
+    const resultWithTiming = {
+      ...result,
+      _meta: {
+        chain,
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString()
+      }
+    };
+
+    res.json(resultWithTiming);
   } catch (error) {
-    console.error('Erreur lors de la récupération des balances:', error);
+    // Calculer le temps jusqu'à l'erreur
+    const errorTime = Date.now();
+    const executionTimeMs = errorTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.error(`❌ [${new Date().toISOString()}] Erreur lors de la récupération des balances pour ${chain} après ${executionTimeSec} secondes:`, error);
+
     res.status(500).json({
       status: 'error',
       errorCode: 'BALANCE_RETRIEVAL_ERROR',
@@ -174,18 +239,55 @@ app.get('/api/balances/:chain', async (req: any, res: any) => {
         message: error.message,
         name: error.name
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      _meta: {
+        chain,
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        errorTime: new Date(errorTime).toISOString()
+      }
     });
   }
 });
 
 // Endpoint pour récupérer uniquement les balances Ethereum (version simplifiée)
 app.get('/api/eth-balance', async (_: any, res: any) => {
+  // Démarrer le timer
+  const startTime = Date.now();
+  console.log(`⏱️ [${new Date().toISOString()}] Début de la récupération des balances Ethereum...`);
+
   try {
     const result = await getEthBalance();
-    res.json(result);
+
+    // Calculer le temps d'exécution
+    const endTime = Date.now();
+    const executionTimeMs = endTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.log(`✅ [${new Date().toISOString()}] Récupération des balances Ethereum terminée en ${executionTimeSec} secondes`);
+
+    // Ajouter le temps d'exécution à la réponse
+    const resultWithTiming = {
+      ...result,
+      _meta: {
+        chain: 'ETH',
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString()
+      }
+    };
+
+    res.json(resultWithTiming);
   } catch (error) {
-    console.error('Erreur lors de la récupération des balances Ethereum:', error);
+    // Calculer le temps jusqu'à l'erreur
+    const errorTime = Date.now();
+    const executionTimeMs = errorTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.error(`❌ [${new Date().toISOString()}] Erreur lors de la récupération des balances Ethereum après ${executionTimeSec} secondes:`, error);
+
     res.status(500).json({
       status: 'error',
       errorCode: 'ETH_BALANCE_RETRIEVAL_ERROR',
@@ -194,19 +296,31 @@ app.get('/api/eth-balance', async (_: any, res: any) => {
         message: error.message,
         name: error.name
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      _meta: {
+        chain: 'ETH',
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        errorTime: new Date(errorTime).toISOString()
+      }
     });
   }
 });
 
 // Endpoint pour récupérer les adresses utilisées pour vérifier les balances
 app.get('/api/addresses', async (_: any, res: any) => {
+  // Démarrer le timer
+  const startTime = Date.now();
+  console.log(`⏱️ [${new Date().toISOString()}] Début de la récupération des adresses...`);
+
   try {
     // Initialiser SwapKit
     const swapKit = getSwapKitClient();
 
     // Vérifier si la phrase mnémonique est configurée
     if (!process.env.MNEMONIC) {
+      console.log(`❌ [${new Date().toISOString()}] Phrase mnémonique non configurée`);
       return res.status(400).json({
         status: 'error',
         errorCode: 'MNEMONIC_NOT_CONFIGURED',
@@ -232,6 +346,9 @@ app.get('/api/addresses', async (_: any, res: any) => {
         if (!address) {
           console.log(`Connexion du wallet pour ${chain} en utilisant le wrapper...`);
           try {
+            if (!process.env.MNEMONIC) {
+              throw new Error("La phrase mnémonique n'est pas configurée");
+            }
             await connectKeystoreWrapper({
               phrase: process.env.MNEMONIC,
               chains: chain
@@ -249,6 +366,10 @@ app.get('/api/addresses', async (_: any, res: any) => {
         if (chain === Chain.Dogecoin && !address) {
           console.log(`Traitement spécial pour ${chain} en raison de problèmes connus`);
           try {
+            // Vérifier si la phrase mnémonique est configurée
+            if (!process.env.MNEMONIC) {
+              throw new Error("La phrase mnémonique n'est pas configurée");
+            }
             // Connecter le wallet avec la phrase mnémonique pour Dogecoin
             await swapKit.connectKeystore({
               phrase: process.env.MNEMONIC,
@@ -293,23 +414,39 @@ app.get('/api/addresses', async (_: any, res: any) => {
       thorchainSupportedChains.map(chain => getChainAddress(chain))
     );
 
-    const endTime = Date.now();
-    console.log(`Toutes les requêtes terminées en ${(endTime - startTime) / 1000} secondes`);
-
     // Traiter les résultats
     for (const result of results) {
       addresses[result.chain] = result.address;
     }
+
+    // Calculer le temps d'exécution
+    const endTime = Date.now();
+    const executionTimeMs = endTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.log(`✅ [${new Date().toISOString()}] Récupération des adresses terminée en ${executionTimeSec} secondes`);
 
     res.json({
       status: 'success',
       data: {
         addresses
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      _meta: {
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString()
+      }
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération des adresses:', error);
+    // Calculer le temps jusqu'à l'erreur
+    const errorTime = Date.now();
+    const executionTimeMs = errorTime - startTime;
+    const executionTimeSec = (executionTimeMs / 1000).toFixed(2);
+
+    console.error(`❌ [${new Date().toISOString()}] Erreur lors de la récupération des adresses après ${executionTimeSec} secondes:`, error);
+
     res.status(500).json({
       status: 'error',
       errorCode: 'ADDRESS_RETRIEVAL_ERROR',
@@ -318,7 +455,13 @@ app.get('/api/addresses', async (_: any, res: any) => {
         message: error.message,
         name: error.name
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      _meta: {
+        executionTimeMs,
+        executionTimeSec: parseFloat(executionTimeSec),
+        startTime: new Date(startTime).toISOString(),
+        errorTime: new Date(errorTime).toISOString()
+      }
     });
   }
 });
@@ -376,9 +519,43 @@ app.get('/api/health', (_: any, res: any) => {
   });
 });
 
+// Initialiser le client SwapKit au démarrage du serveur
+console.log("Initialisation du client SwapKit au démarrage du serveur...");
+const startInitTime = Date.now();
+
+// Obtenir l'instance du client SwapKit (initialise le singleton)
+getSwapKitClient();
+console.log("✅ Client SwapKit initialisé et prêt à être utilisé");
+
 // Démarrer le serveur
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Serveur API de swap démarré sur le port ${PORT}`);
+
+  // Pré-connecter le wallet si la phrase mnémonique est configurée
+  if (process.env.MNEMONIC) {
+    try {
+      // Vérifier que la phrase mnémonique est définie et valide
+      if (!process.env.MNEMONIC) {
+        throw new Error("La phrase mnémonique n'est pas configurée");
+      }
+      console.log(`Pré-connexion du wallet avec la phrase mnémonique (${process.env.MNEMONIC.split(' ').length} mots)...`);
+      await connectKeystoreWrapper({
+        phrase: process.env.MNEMONIC,
+        chains: thorchainSupportedChains
+      });
+      console.log("✅ Wallet pré-connecté avec succès pour toutes les chaînes");
+    } catch (error) {
+      console.error("Erreur lors de la pré-connexion du wallet:", error.message);
+      console.log("Les connexions seront effectuées à la demande.");
+    }
+  } else {
+    console.warn("⚠️ La phrase mnémonique n'est pas configurée dans le fichier .env (variable MNEMONIC)");
+    console.log("Le wallet ne sera pas pré-connecté.");
+  }
+
+  const endInitTime = Date.now();
+  console.log(`✅ Initialisation terminée en ${(endInitTime - startInitTime) / 1000} secondes`);
+
   console.log(`Endpoint de swap disponible sur http://localhost:${PORT}/api/swaps`);
   console.log(`Endpoint de balances disponible sur http://localhost:${PORT}/api/balances`);
   console.log(`Endpoint de balances Ethereum disponible sur http://localhost:${PORT}/api/eth-balance`);
