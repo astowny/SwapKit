@@ -1,3 +1,10 @@
+import type { DepositParam, TransferParams } from "@swapkit/toolbox-cosmos";
+import type {
+  Psbt,
+  TransactionType,
+  UTXOTransferParams,
+  UTXOWalletTransferParams,
+} from "@swapkit/toolbox-utxo";
 import {
   type AssetValue,
   Chain,
@@ -17,14 +24,7 @@ import {
   pickEvmApiKey,
   setRequestClientConfig,
   updatedLastIndex,
-} from "@swapkit/helpers";
-import type { DepositParam, TransferParams } from "@swapkit/toolbox-cosmos";
-import type {
-  Psbt,
-  TransactionType,
-  UTXOTransferParams,
-  UTXOWalletTransferParams,
-} from "@swapkit/toolbox-utxo";
+} from "../../../swapkit/helpers/src/index";
 
 const KEYSTORE_SUPPORTED_CHAINS = [
   ...EVMChains,
@@ -237,6 +237,8 @@ function connectKeystore({
   ) {
     setRequestClientConfig({ apiKey: thorswapApiKey });
 
+    // console.log('in connectKeystoreFunction,', chains)
+
     const supportedChains = filterSupportedChains(
       chains,
       KEYSTORE_SUPPORTED_CHAINS,
@@ -264,6 +266,7 @@ function connectKeystore({
         );
 
       const derivationPath = derivationPathToString(derivationPathArray);
+      // console.log('derivationPath', derivationPath)
 
       const { address, walletMethods } = await getWalletMethodsForChain({
         derivationPath,
@@ -276,6 +279,8 @@ function connectKeystore({
         blockchairApiKey,
         stagenet,
       });
+
+      // console.log('getWalletMethods for chain walletMethods', walletMethods)
 
       addChain({
         ...walletMethods,

@@ -7,16 +7,22 @@ export function filterSupportedChains<T extends Chain>(
   supportedChains: readonly T[],
   walletOption: WalletOption,
 ) {
-  const supported = chains.filter((chain): chain is T => supportedChains.includes(chain as T));
+  // S'assurer que chains est un tableau
+  const chainsArray = Array.isArray(chains) ? chains : [chains];
+  // console.log('chainsArray', chainsArray)
+
+  const supported = chainsArray.filter((chain): chain is T => supportedChains.includes(chain as T));
+  // console.log('supported', supported)
 
   if (supported.length === 0) {
     throw new SwapKitError("wallet_chain_not_supported", {
       wallet: walletOption,
-      chain: chains.join(", "),
+      chain: chainsArray.join(", "),
     });
   }
 
-  const unsupported = chains.filter((chain) => !supportedChains.includes(chain as T));
+  const unsupported = chainsArray.filter((chain) => !supportedChains.includes(chain as T));
+  // console.log('unsupported', unsupported)
 
   if (unsupported.length > 0) {
     console.warn(

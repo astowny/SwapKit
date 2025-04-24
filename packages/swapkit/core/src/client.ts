@@ -67,27 +67,61 @@ export function SwapKit<Plugins extends PluginsType, Wallets extends WalletsType
   type PluginName = keyof Plugins;
   const connectedWallets = {} as FullWallet;
 
+  console.log("\n[DEBUG] Initializing plugins...");
+  console.log(`[DEBUG] Available plugins: ${Object.keys(plugins || {}).join(", ") || "None"}`);
+
   const availablePlugins = Object.entries(plugins || {}).reduce(
     (acc, [pluginName, { plugin, config: pluginConfig }]) => {
-      const methods = plugin({ getWallet, stagenet, config: pluginConfig ?? config });
+      console.log(`\n[DEBUG] Initializing plugin: ${pluginName}`);
+      console.log(`[DEBUG] Plugin config:`, pluginConfig || "Using default config");
 
-      // @ts-expect-error key is generic and cannot be indexed
-      acc[pluginName] = methods;
+      try {
+        const methods = plugin({ getWallet, stagenet, config: pluginConfig ?? config });
+        console.log(`[DEBUG] Plugin ${pluginName} initialized successfully`);
+        console.log(`[DEBUG] Plugin ${pluginName} methods:`, Object.keys(methods));
+
+        // @ts-expect-error key is generic and cannot be indexed
+        acc[pluginName] = methods;
+      } catch (error) {
+        console.error(`[DEBUG] Error initializing plugin ${pluginName}:`, error);
+        console.error(`[DEBUG] Error details:`, error.message);
+      }
+
       return acc;
     },
     {} as { [key in PluginName]: ReturnType<Plugins[key]["plugin"]> },
   );
 
+  console.log("\n[DEBUG] All plugins initialized.");
+
+  console.log("\n[DEBUG] Initializing wallet connection methods...");
+  console.log(`[DEBUG] Available wallets: ${Object.keys(wallets).join(", ") || "None"}`);
+
   const connectWalletMethods = Object.entries(wallets).reduce(
     (acc, [walletName, wallet]) => {
-      const connectWallet = wallet({ addChain, config, apis, rpcUrls });
+      console.log(`\n[DEBUG] Initializing wallet: ${walletName}`);
 
-      // @ts-expect-error walletName is generic and cannot be indexed
-      acc[walletName] = connectWallet;
+      try {
+        const connectWallet = wallet({ addChain, config, apis, rpcUrls });
+        console.log(`[DEBUG] Wallet ${walletName} initialized successfully`);
+        console.log(
+          `[DEBUG] Wallet ${walletName} methods:`,
+          connectWallet ? Object.keys(connectWallet) : "No methods",
+        );
+
+        // @ts-expect-error walletName is generic and cannot be indexed
+        acc[walletName] = connectWallet;
+      } catch (error) {
+        console.error(`[DEBUG] Error initializing wallet ${walletName}:`, error);
+        console.error(`[DEBUG] Error details:`, error.message);
+      }
+
       return acc;
     },
     {} as { [key in keyof Wallets]: ReturnType<Wallets[key]> },
   );
+
+  console.log("\n[DEBUG] All wallet connection methods initialized.");
 
   function getSwapKitPlugin<T extends PluginName>(pluginName: T) {
     const plugin = availablePlugins[pluginName] || Object.values(availablePlugins)[0];
@@ -171,9 +205,22 @@ export function SwapKit<Plugins extends PluginsType, Wallets extends WalletsType
    * @Public
    */
   function getWallet<T extends Chain>(chain: T) {
-    // console.debug("Getting wallet for chain:", chain);
-    // console.debug("Connected wallets:", connectedWallets);
-    return connectedWallets[chain];
+    console.log(`\n[DEBUG] Getting wallet for chain: ${chain}`);
+    console.log(`[DEBUG] Connected wallets:`, Object.keys(connectedWallets));
+
+    const wallet = connectedWallets[chain];
+
+    if (wallet) {
+      console.log(`[DEBUG] Found wallet for chain ${chain}:`, {
+        address: wallet.address,
+        walletType: wallet.walletType,
+        hasBalance: Array.isArray(wallet.balance) && wallet.balance.length > 0,
+      });
+    } else {
+      console.log(`[DEBUG] No wallet found for chain ${chain}`);
+    }
+
+    return wallet;
   }
 
   function getAllWallets() {

@@ -1,9 +1,9 @@
 [
   {
-    "timestamp": "2025-04-22T04:29:04.092Z",
+    "timestamp": "2025-04-22T04:31:07.195Z",
     "url": "https://api.swapkit.dev/quote",
     "method": "POST",
-    "durationMs": 14216.415357999998,
+    "durationMs": 14907.464039999999,
     "error": "undefined is not an object (evaluating 'C.error')",
     "requestPayload": {
       "sellAsset": "BSC.USDT-0x55d398326f99059ff775485246999027b3197955",

@@ -1,5 +1,12 @@
+/**
+ * Client SwapKit utilisant directement la fonction SwapKit du dossier swapkit/core
+ * 
+ * Ce fichier crée une version du client SwapKit qui utilise directement la fonction SwapKit
+ * du dossier swapkit/core au lieu de passer par createSwapKit du dossier swapkit/sdk.
+ */
+
 import { Chain } from "../../../../swapkit/core/src/index";
-import { createSwapKit } from "../../../../swapkit/sdk";
+import { SwapKit } from "../../../../swapkit/core/src/client";
 
 // Importer les plugins disponibles
 import { ThorchainPlugin, MayachainPlugin } from "../../../../plugins/thorchain/src/index";
@@ -9,8 +16,7 @@ import { KadoPlugin } from "../../../../plugins/kado/src/index";
 import { RadixPlugin } from "../../../../plugins/radix/src/index";
 
 // Importer les wallets
-import { keystoreWallet } from "../../../../wallets/keystore/src/index";
-import {wallets} from "../../../../swapkit/wallets"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from
+import { wallets } from "../../../../swapkit/wallets"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from
 
 // Importer notre factory d'API
 import { createEvmApiFactory, ApiType } from "./apiFactory";
@@ -27,15 +33,6 @@ const clientCache = new Map<string, SwapKitClient>();
 
 /**
  * Paramètres de base pour SwapKit conformément au type SwapKitParams<P, W>
- *
- * Structure attendue par SwapKit:
- * type SwapKitParams<P, W> = {
- *   apis?: ChainApis;           // Configuration des APIs pour différentes chaînes
- *   config?: ConnectConfig;     // Configuration de connexion
- *   plugins?: P;               // Plugins à utiliser
- *   rpcUrls?: { [key in CryptoChain]?: string }; // URLs RPC personnalisées
- *   wallets?: W;               // Wallets à utiliser
- * };
  */
 const swapKitParams = {
   // Configuration des APIs pour différentes chaînes
@@ -44,7 +41,6 @@ const swapKitParams = {
     blockchairApiKey: `'${process.env.BLOCKCHAIR_API_KEY || ""}'`,
     covalentApiKey: `'${process.env.COVALENT_API_KEY || ""}'`,
     alchemyApiKey: `'${process.env.ALCHEMY_API_KEY || ""}'`,
-    // walletConnectProjectId: "''",
   },
   // Utiliser notre factory pour créer les APIs
   apis: (() => {
@@ -83,7 +79,6 @@ const swapKitParams = {
   // URLs RPC personnalisées (optionnel)
   rpcUrls: {
     // Exemple: 'ETH': 'https://mainnet.infura.io/v3/your-api-key'
-    // 'ETH': 'https://mainnet.infura.io/v3/' + process.env.INFURA_API_KEY
   },
   // Tous les plugins disponibles
   plugins: {
@@ -94,61 +89,47 @@ const swapKitParams = {
     ...KadoPlugin,
     ...RadixPlugin
   },
-  // Wallet Keystore
+  // Wallets
   wallets: {
-    ...keystoreWallet,
-    // ...wallets
+    ...wallets
   }
 };
 
 /**
- * Obtient une instance de SwapKit client avec tous les plugins disponibles
- * et le wallet Keystore préconfigurés.
- *
- * Plugins inclus :
- * - THORChain : Pour les swaps cross-chain via THORChain
- * - Maya : Pour les swaps cross-chain via Maya
- * - EVM : Pour les interactions avec les chaînes compatibles EVM (Ethereum, BSC, etc.)
- *
- * Cette configuration permet de :
- * - Effectuer des swaps via THORChain, Maya et les DEX sur les chaînes EVM
- * - Connecter des portefeuilles via la méthode connectKeystore
- * - Gérer les transactions sur toutes les chaînes supportées
- *
- * @param chainsToConnect Chaînes à connecter (optionnel)
+ * Obtient une instance de SwapKit client en utilisant directement la fonction SwapKit
+ * du dossier swapkit/core.
+ * 
+ * Cette approche évite les problèmes liés à la fonction filterSupportedChains
+ * en utilisant directement l'implémentation de base.
+ * 
  * @returns Instance de SwapKit client
  */
-export const getSwapKitClient = (
-  chainsToConnect: Chain[] = []
-): SwapKitClient => {
+export const getDirectSwapKitClient = (): SwapKitClient => {
   try {
     // Créer une clé unique pour le cache
     const key = JSON.stringify(swapKitParams);
 
     // Vérifier si le client est déjà en cache
     if (clientCache.has(key)) {
-      // Suppression du log pour réduire le bruit
       return clientCache.get(key)!;
     }
 
-    // Créer une nouvelle instance de SwapKit
-    // Logs réduits pour éviter d'afficher trop d'informations
-
-    // Configurer le monitoring réseau avec logs réduits
+    // Configurer le monitoring réseau
     networkMonitor.configure({
       enabled: true,
-      logToConsole: false, // Désactivé pour réduire les logs
+      logToConsole: false,
       logToFile: true,
       logFilePath: './network_logs.json',
       includeRequestPayload: true,
       includeResponseData: false,
     });
 
-    // Créer l'instance avec les paramètres correctement structurés
-    // Créer le client SwapKit avec une meilleure gestion des erreurs
+    console.log("Création d'une instance SwapKit directement depuis swapkit/core...");
+    
+    // Créer l'instance avec la fonction SwapKit du dossier swapkit/core
     let client: any;
     try {
-      client = createSwapKit(swapKitParams as any);
+      client = SwapKit(swapKitParams as any);
 
       // Vérifier que le client a été créé correctement
       if (!client) {
@@ -172,18 +153,68 @@ export const getSwapKitClient = (
       client.api.getPrice = SwapKitApiWithMonitoring.getPrice;
       client.api.getGasRate = SwapKitApiWithMonitoring.getGasRate;
       client.api.getTrackerDetails = SwapKitApiWithMonitoring.getTrackerDetails;
-
-      // Suppression du log pour réduire le bruit
     }
 
     // Mettre en cache le client
     clientCache.set(key, client);
 
-    // Ne pas afficher les chaînes à connecter pour réduire les logs
+    console.log("Instance SwapKit créée avec succès");
+    console.log("Méthodes disponibles:", Object.keys(client));
+    
+    // Vérifier si la méthode connectKeystore existe
+    if (typeof client.connectKeystore === 'function') {
+      console.log("La méthode connectKeystore est disponible");
+    } else {
+      console.warn("La méthode connectKeystore n'est pas disponible");
+    }
 
     return client;
   } catch (error) {
     console.error("Erreur lors de l'initialisation de SwapKit:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fonction pour connecter un wallet avec une phrase mnémonique
+ * 
+ * Cette fonction utilise directement la méthode connectKeystore du client SwapKit
+ * et gère correctement les cas où l'argument chains n'est pas un tableau.
+ * 
+ * @param phrase Phrase mnémonique
+ * @param chains Chaînes à connecter (peut être un tableau ou une seule chaîne)
+ * @returns Résultat de la connexion
+ */
+export const connectKeystoreDirect = async (
+  phrase: string,
+  chains: Chain[] | Chain
+): Promise<any> => {
+  try {
+    console.log("[DIRECT] Connexion du wallet avec la phrase mnémonique...");
+    
+    // Obtenir l'instance de SwapKit
+    const swapKit = getDirectSwapKitClient();
+    
+    // Vérifier si la méthode connectKeystore existe
+    if (typeof swapKit.connectKeystore !== 'function') {
+      throw new Error("La méthode connectKeystore n'existe pas dans l'instance de SwapKit");
+    }
+    
+    // S'assurer que chains est un tableau
+    const chainsArray = Array.isArray(chains) ? chains : [chains];
+    
+    console.log("[DIRECT] Chaînes à connecter:", chainsArray);
+    
+    // Appeler la méthode connectKeystore
+    const result = await swapKit.connectKeystore({
+      phrase,
+      chains: chainsArray
+    });
+    
+    console.log("[DIRECT] Wallet connecté avec succès");
+    return result;
+  } catch (error) {
+    console.error("[DIRECT] Erreur lors de la connexion du wallet:", error);
     throw error;
   }
 };
