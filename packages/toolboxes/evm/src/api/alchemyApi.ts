@@ -8,7 +8,7 @@ import {
   RequestClient,
   type TokenTax,
   formatBigIntToSafeValue,
-} from "@swapkit/helpers";
+} from "../../../../swapkit/helpers/src/index";
 
 const ChainIdToAlchemyNetwork: Partial<Record<ChainId, string>> = {
   [ChainId.Arbitrum]: "arb",
@@ -22,7 +22,7 @@ const ChainIdToAlchemyNetwork: Partial<Record<ChainId, string>> = {
 
 const staticTokensMap = new Map<string, { tax?: TokenTax; decimal: number; symbol: string }>();
 
-import("@swapkit/tokens").then((tokenPackage) => {
+import("../../../../swapkit/tokens/src/index").then((tokenPackage) => {
   for (const tokenList of Object.values(tokenPackage.tokenLists).filter(
     (tokenList) => !["CAVIAR_V1", "JUPITER"].includes(tokenList.provider),
   )) {

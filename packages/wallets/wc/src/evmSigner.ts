@@ -1,6 +1,6 @@
-import { type EVMChain, SwapKitError, WalletOption } from "@swapkit/helpers";
 import type { JsonRpcProvider, Provider, TransactionRequest } from "ethers";
 import { AbstractSigner } from "ethers";
+import { type EVMChain, SwapKitError, WalletOption } from "../../../swapkit/helpers/src/index";
 
 import { DEFAULT_EIP155_METHODS } from "./constants";
 import { chainToChainId, getAddressByChain } from "./helpers";

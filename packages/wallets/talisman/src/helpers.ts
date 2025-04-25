@@ -1,4 +1,7 @@
 import { decodeAddress, encodeAddress } from "@polkadot/util-crypto";
+import type { NonETHToolbox } from "@swapkit/toolbox-evm";
+import { type InjectedWindow, Network } from "@swapkit/toolbox-substrate";
+import type { Eip1193Provider } from "ethers";
 import {
   Chain,
   type ChainApis,
@@ -10,10 +13,7 @@ import {
   pickEvmApiKey,
   prepareNetworkSwitch,
   switchEVMWalletNetwork,
-} from "@swapkit/helpers";
-import type { NonETHToolbox } from "@swapkit/toolbox-evm";
-import { type InjectedWindow, Network } from "@swapkit/toolbox-substrate";
-import type { Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
 
 declare const window: {
   talismanEth: EthereumWindowProvider;

@@ -1,3 +1,5 @@
+import type { NonETHToolbox } from "@swapkit/toolbox-evm";
+import type { Eip1193Provider } from "ethers";
 import {
   AssetValue,
   Chain,
@@ -13,9 +15,7 @@ import {
   filterSupportedChains,
   pickEvmApiKey,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import type { NonETHToolbox } from "@swapkit/toolbox-evm";
-import type { Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
 import {
   type WalletTxParams,
   cosmosTransfer,
@@ -58,7 +58,7 @@ async function getWalletMethodsForChain({
     case Chain.Maya:
     case Chain.THORChain: {
       const { getToolboxByChain, THORCHAIN_GAS_VALUE, MAYA_GAS_VALUE } = await import(
-        "@swapkit/toolbox-cosmos"
+        "../../../toolboxes/cosmos/src/index"
       );
 
       const gasLimit = chain === Chain.Maya ? MAYA_GAS_VALUE : THORCHAIN_GAS_VALUE;
@@ -73,7 +73,7 @@ async function getWalletMethodsForChain({
 
     case Chain.Cosmos:
     case Chain.Kujira: {
-      const { getToolboxByChain } = await import("@swapkit/toolbox-cosmos");
+      const { getToolboxByChain } = await import("../../../toolboxes/cosmos/src/index");
       const toolbox = getToolboxByChain(chain);
 
       return {
@@ -90,7 +90,7 @@ async function getWalletMethodsForChain({
     case Chain.BitcoinCash:
     case Chain.Dogecoin:
     case Chain.Litecoin: {
-      const { getToolboxByChain } = await import("@swapkit/toolbox-utxo");
+      const { getToolboxByChain } = await import("../../../toolboxes/utxo/src/index");
       const toolbox = getToolboxByChain(chain)({ apiKey: blockchairApiKey });
 
       const getBalance = async () => {
@@ -118,7 +118,9 @@ async function getWalletMethodsForChain({
     case Chain.Optimism:
     case Chain.Polygon:
     case Chain.Avalanche: {
-      const { prepareNetworkSwitch, switchEVMWalletNetwork } = await import("@swapkit/helpers");
+      const { prepareNetworkSwitch, switchEVMWalletNetwork } = await import(
+        "../../../swapkit/helpers/src/index"
+      );
       const { getToolboxByChain, getBalance, covalentApi, ethplorerApi, getProvider } =
         await import("@swapkit/toolbox-evm");
       const { BrowserProvider } = await import("ethers");

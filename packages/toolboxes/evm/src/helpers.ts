@@ -1,3 +1,4 @@
+import type { BrowserProvider, JsonRpcProvider, Provider } from "ethers";
 import {
   AssetValue,
   BaseDecimal,
@@ -8,8 +9,7 @@ import {
   filterAssets,
   formatBigIntToSafeValue,
   isGasAsset,
-} from "@swapkit/helpers";
-import type { BrowserProvider, JsonRpcProvider, Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
 
 import {
   type AlchemyApiType,

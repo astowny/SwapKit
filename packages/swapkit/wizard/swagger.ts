@@ -1,5 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import { Chain } from '@swapkit/helpers';
+import { Chain } from '../helpers/src/index';
 
 // Définir manuellement les chaînes supportées par THORChain
 // Cela évite les problèmes d'importation circulaire

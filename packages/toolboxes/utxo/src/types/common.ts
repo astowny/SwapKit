@@ -1,4 +1,9 @@
-import type { AssetValue, FeeOption, UTXOChain, Witness } from "@swapkit/helpers";
+import type {
+  AssetValue,
+  FeeOption,
+  UTXOChain,
+  Witness,
+} from "../../../../swapkit/helpers/src/index";
 
 import type { BlockchairApiType } from "../api/blockchairApi";
 import type { BCHToolbox, BTCToolbox, DOGEToolbox, LTCToolbox } from "../index";

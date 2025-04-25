@@ -6,7 +6,7 @@ import {
   WalletOption,
   filterSupportedChains,
   setRequestClientConfig,
-} from "@swapkit/helpers";
+} from "../../../swapkit/helpers/src/index";
 
 import { KeepKeySdk } from "@keepkey/keepkey-sdk";
 export type { PairingInfo } from "@keepkey/keepkey-sdk";

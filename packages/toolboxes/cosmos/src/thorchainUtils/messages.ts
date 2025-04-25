@@ -4,7 +4,7 @@ import {
   Chain,
   ChainToChainId,
   TRADE_OR_SYNTH_ASSET_SEPERATOR,
-} from "@swapkit/helpers";
+} from "../../../../swapkit/helpers/src/index";
 
 import {
   createStargateClient,

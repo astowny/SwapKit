@@ -1,3 +1,5 @@
+import type { NonETHToolbox } from "@swapkit/toolbox-evm";
+import type { BrowserProvider, Eip1193Provider } from "ethers";
 import {
   Chain,
   type ChainApis,
@@ -12,9 +14,7 @@ import {
   prepareNetworkSwitch,
   setRequestClientConfig,
   switchEVMWalletNetwork,
-} from "@swapkit/helpers";
-import type { NonETHToolbox } from "@swapkit/toolbox-evm";
-import type { BrowserProvider, Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
 
 declare const window: {
   ethereum: EthereumWindowProvider;

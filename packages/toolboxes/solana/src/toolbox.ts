@@ -16,6 +16,7 @@ import {
   Transaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
+import { HDKey } from "micro-key-producer/slip10.js";
 import {
   AssetValue,
   Chain,
@@ -24,8 +25,7 @@ import {
   SwapKitNumber,
   type WalletTxParams,
   getRPCUrl,
-} from "@swapkit/helpers";
-import { HDKey } from "micro-key-producer/slip10.js";
+} from "../../../../swapkit/helpers/src/index";
 
 export function validateAddress(address: string) {
   try {

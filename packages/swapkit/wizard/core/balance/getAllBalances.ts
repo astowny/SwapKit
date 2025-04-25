@@ -1,4 +1,4 @@
-import { Chain } from "@swapkit/helpers";
+import { Chain } from "../../../helpers/src/index";
 import { getSwapKitClient } from "../swap/client";
 import { connectKeystoreWrapper } from "../connectKeystore-wrapper";
 

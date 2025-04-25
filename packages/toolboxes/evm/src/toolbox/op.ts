@@ -1,3 +1,5 @@
+import type { BrowserProvider, JsonRpcProvider, Signer, TransactionRequest } from "ethers";
+import { Contract, Transaction } from "ethers";
 import {
   BaseDecimal,
   Chain,
@@ -6,9 +8,7 @@ import {
   FeeOption,
   SwapKitError,
   getRPCUrl,
-} from "@swapkit/helpers";
-import type { BrowserProvider, JsonRpcProvider, Signer, TransactionRequest } from "ethers";
-import { Contract, Transaction } from "ethers";
+} from "../../../../swapkit/helpers/src/index";
 
 import { gasOracleAbi } from "../contracts/op/gasOracle";
 import { type AlchemyApiType, type CovalentApiType, covalentApi, getBalance } from "../index";

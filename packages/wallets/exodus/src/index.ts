@@ -1,4 +1,16 @@
 import type { Wallet } from "@passkeys/core";
+import { type NonETHToolbox, getProvider, getToolboxByChain } from "@swapkit/toolbox-evm";
+import { BrowserProvider, type Eip1193Provider } from "ethers";
+import {
+  AddressPurpose,
+  BitcoinNetworkType,
+  type BitcoinProvider,
+  type GetAddressOptions,
+  type GetAddressResponse,
+  type SignTransactionOptions,
+  getAddress,
+  signTransaction as satsSignTransaction,
+} from "sats-connect";
 import {
   Chain,
   type ChainApis,
@@ -11,20 +23,8 @@ import {
   prepareNetworkSwitch,
   setRequestClientConfig,
   switchEVMWalletNetwork,
-} from "@swapkit/helpers";
-import { type NonETHToolbox, getProvider, getToolboxByChain } from "@swapkit/toolbox-evm";
-import { BTCToolbox, Psbt, type UTXOTransferParams } from "@swapkit/toolbox-utxo";
-import { BrowserProvider, type Eip1193Provider } from "ethers";
-import {
-  AddressPurpose,
-  BitcoinNetworkType,
-  type BitcoinProvider,
-  type GetAddressOptions,
-  type GetAddressResponse,
-  type SignTransactionOptions,
-  getAddress,
-  signTransaction as satsSignTransaction,
-} from "sats-connect";
+} from "../../../swapkit/helpers/src/index";
+import { BTCToolbox, Psbt, type UTXOTransferParams } from "../../../toolboxes/utxo/src/index";
 
 export const EXODUS_SUPPORTED_CHAINS = [...EVMChains, Chain.Bitcoin] as const;
 

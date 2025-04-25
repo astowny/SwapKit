@@ -1,4 +1,4 @@
-import { Chain } from "@swapkit/helpers";
+import { Chain } from "../../../../swapkit/helpers/src/index";
 
 import { ARBToolbox } from "./arb";
 import { AVAXToolbox } from "./avax";

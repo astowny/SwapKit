@@ -1,4 +1,4 @@
-import { AssetValue, Chain, FeeOption } from "@swapkit/core";
+import { AssetValue, Chain, FeeOption } from "../../core/src/index";
 import { getSwapKitClient } from "./client";
 import { cleanSwapKitForLogging } from "./swap/walletLogger";
 import { applyLogPatch } from "./logPatch";

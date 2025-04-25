@@ -1,3 +1,5 @@
+import type { ApproveParams, CallParams, EVMTxParams } from "@swapkit/toolbox-evm";
+import type { BrowserProvider, Eip1193Provider } from "ethers";
 import {
   type AssetValue,
   Chain,
@@ -9,10 +11,8 @@ import {
   WalletOption,
   erc20ABI,
   getRPCUrl,
-} from "@swapkit/helpers";
-import type { TransferParams } from "@swapkit/toolbox-cosmos";
-import type { ApproveParams, CallParams, EVMTxParams } from "@swapkit/toolbox-evm";
-import type { BrowserProvider, Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
+import type { TransferParams } from "../../../toolboxes/cosmos/src/index";
 
 interface UTXOProvider {
   request: (
@@ -181,7 +181,7 @@ export function cosmosTransfer({
 }) {
   return async ({ from, recipient, assetValue }: TransferParams) => {
     const { getMsgSendDenom, createSigningStargateClient } = await import(
-      "@swapkit/toolbox-cosmos"
+      "../../../toolboxes/cosmos/src/index"
     );
     // @ts-expect-error assumed available connection
     const offlineSigner = window.keepkey?.cosmos?.getOfflineSignerOnlyAmino(chainId);

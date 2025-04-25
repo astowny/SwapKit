@@ -10,8 +10,8 @@ import {
   filterSupportedChains,
   pickEvmApiKey,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import type { SolanaProvider } from "@swapkit/toolbox-solana";
+} from "../../../swapkit/helpers/src/index";
+import type { SolanaProvider } from "../../../toolboxes/solana/src/index";
 
 export const PHANTOM_SUPPORTED_CHAINS = [Chain.Bitcoin, Chain.Ethereum, Chain.Solana] as const;
 export type PhantomSupportedChains = (typeof PHANTOM_SUPPORTED_CHAINS)[number];
@@ -47,7 +47,7 @@ async function getWalletMethods({
       }
       const [{ address }] = await provider.requestAccounts();
 
-      const { getToolboxByChain } = await import("@swapkit/toolbox-utxo");
+      const { getToolboxByChain } = await import("../../../toolboxes/utxo/src/index");
       const toolbox = getToolboxByChain(chain);
 
       return { ...toolbox({ rpcUrl }), address };
@@ -75,7 +75,9 @@ async function getWalletMethods({
     }
 
     case Chain.Solana: {
-      const { createSolanaTokenTransaction, SOLToolbox } = await import("@swapkit/toolbox-solana");
+      const { createSolanaTokenTransaction, SOLToolbox } = await import(
+        "../../../toolboxes/solana/src/index"
+      );
       const provider = phantom?.solana;
       if (!provider?.isPhantom) {
         throw new SwapKitError("wallet_phantom_not_found");

@@ -8,9 +8,15 @@ import {
 } from "@psf/bitcoincashjs-lib";
 
 import { mnemonicToSeedSync } from "@scure/bip39";
-import { Chain, DerivationPath, FeeOption, type UTXOChain, getRPCUrl } from "@swapkit/helpers";
 import { Psbt } from "bitcoinjs-lib";
 import { ECPairFactory } from "ecpair";
+import {
+  Chain,
+  DerivationPath,
+  FeeOption,
+  type UTXOChain,
+  getRPCUrl,
+} from "../../../../swapkit/helpers/src/index";
 
 import type { BlockchairApiType } from "../api/blockchairApi";
 import { blockchairApi } from "../api/blockchairApi";

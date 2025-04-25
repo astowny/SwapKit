@@ -1,5 +1,5 @@
-import { Chain, ChainToChainId } from "@swapkit/core";
-import { alchemyApi, covalentApi, ethplorerApi } from "@swapkit/toolbox-evm";
+import { Chain, ChainToChainId } from "../../../core/src/index";
+import { alchemyApi, covalentApi, ethplorerApi } from "../../../../toolboxes/evm/src/index";
 
 // Types d'API supportés
 export enum ApiType {

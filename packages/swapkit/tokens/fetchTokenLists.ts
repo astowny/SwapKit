@@ -1,5 +1,5 @@
-import { SwapKitApi } from "@swapkit/api";
-import { Chain, ChainId, ProviderName } from "@swapkit/helpers";
+import { SwapKitApi } from "../api/src/index";
+import { Chain, ChainId, ProviderName } from "../helpers/src/index";
 
 function parseChain(chain: string) {
   if (chain === "ARBITRUM") return Chain.Arbitrum;

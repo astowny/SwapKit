@@ -1,7 +1,7 @@
-import { Chain, FeeOption } from "@swapkit/helpers";
 import { networks } from "bitcoinjs-lib";
 // @ts-ignore TODO: check why wallets doesn't see modules included in toolbox
 import coininfo from "coininfo";
+import { Chain, FeeOption } from "../../../../swapkit/helpers/src/index";
 
 const pid = typeof process !== "undefined" && process.pid ? process.pid.toString(36) : "";
 

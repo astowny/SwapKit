@@ -1,5 +1,9 @@
-import { ChainToChainId, filterSupportedChains, setRequestClientConfig } from "@swapkit/helpers";
-import { Chain, type ConnectWalletParams, WalletOption } from "@swapkit/helpers";
+import {
+  ChainToChainId,
+  filterSupportedChains,
+  setRequestClientConfig,
+} from "../../../swapkit/helpers/src/index";
+import { Chain, type ConnectWalletParams, WalletOption } from "../../../swapkit/helpers/src/index";
 
 import { createCoinbaseWalletSDK } from "@coinbase/wallet-sdk";
 import type { CreateCoinbaseWalletSDKOptions } from "@coinbase/wallet-sdk/dist/createCoinbaseWalletSDK";

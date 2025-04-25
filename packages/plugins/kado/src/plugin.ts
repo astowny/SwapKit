@@ -1,4 +1,4 @@
-import type { QuoteResponse, QuoteResponseRoute } from "@swapkit/api";
+import type { QuoteResponse, QuoteResponseRoute } from "../../../swapkit/api/src/index";
 import {
   AssetValue,
   Chain,
@@ -6,8 +6,8 @@ import {
   ProviderName,
   RequestClient,
   blockTimes,
-} from "@swapkit/helpers";
-import type { SwapKitPluginParams, SwapParams } from "@swapkit/helpers";
+} from "../../../swapkit/helpers/src/index";
+import type { SwapKitPluginParams, SwapParams } from "../../../swapkit/helpers/src/index";
 import { ChainToKadoChain } from "./helpers";
 import type {
   KadoBlockchainsResponse,

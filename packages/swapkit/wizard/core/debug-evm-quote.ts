@@ -5,7 +5,7 @@
  * notamment les erreurs "toolbox_evm_error_estimating_gas_limit".
  */
 
-import { Chain } from "@swapkit/core";
+import { Chain } from "../../core/src/index";
 import { getSwapKitClient } from "./client";
 
 /**

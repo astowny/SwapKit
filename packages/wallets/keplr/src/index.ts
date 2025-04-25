@@ -9,8 +9,8 @@ import {
   type WalletTxParams,
   filterSupportedChains,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import type { ThorchainToolboxType } from "@swapkit/toolbox-cosmos";
+} from "../../../swapkit/helpers/src/index";
+import type { ThorchainToolboxType } from "../../../toolboxes/cosmos/src/index";
 import { chainRegistry } from "./chainRegistry";
 
 declare global {
@@ -52,7 +52,7 @@ function connectKeplr({
         preferNoSetFee: chain === Chain.THORChain,
       });
       if (!offlineSigner) throw new Error("Could not load offlineSigner");
-      const { getToolboxByChain } = await import("@swapkit/toolbox-cosmos");
+      const { getToolboxByChain } = await import("../../../toolboxes/cosmos/src/index");
 
       const accounts = await offlineSigner.getAccounts();
 

@@ -1,6 +1,6 @@
 import type { Keplr } from "@keplr-wallet/types";
-import type { SolanaProvider } from "@swapkit/toolbox-solana";
 import type { BrowserProvider, Eip1193Provider } from "ethers";
+import type { SolanaProvider } from "../../../toolboxes/solana/src/index";
 
 export { ctrlWallet, CTRL_SUPPORTED_CHAINS } from "./ctrlWallet";
 

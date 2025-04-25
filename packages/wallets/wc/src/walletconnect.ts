@@ -1,4 +1,11 @@
 import type { StdSignDoc } from "@cosmjs/amino";
+import type { WalletConnectModalSign } from "@walletconnect/modal-sign-html";
+import type { SessionTypes, SignClientTypes } from "@walletconnect/types";
+import type {
+  BaseCosmosToolboxType,
+  DepositParam,
+  TransferParams,
+} from "../../../../toolboxes/cosmos/src/index";
 import {
   Chain,
   type ChainApis,
@@ -10,10 +17,7 @@ import {
   getRPCUrl,
   pickEvmApiKey,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import type { BaseCosmosToolboxType, DepositParam, TransferParams } from "@swapkit/toolbox-cosmos";
-import type { WalletConnectModalSign } from "@walletconnect/modal-sign-html";
-import type { SessionTypes, SignClientTypes } from "@walletconnect/types";
+} from "../../../swapkit/helpers/src/index";
 
 import {
   DEFAULT_APP_METADATA,
@@ -96,7 +100,7 @@ async function getToolbox({
         fromBase64,
         getDefaultChainFee,
         parseAminoMessageForDirectSigning,
-      } = await import("@swapkit/toolbox-cosmos");
+      } = await import("../../../../toolboxes/cosmos/src/index");
       const toolbox = ThorchainToolbox({ stagenet: false });
 
       const fee = getDefaultChainFee(chain);

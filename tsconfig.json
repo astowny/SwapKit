@@ -1,11 +1,10 @@
 {
-  "extends": "../../../tools/typescript/base.json",
+  "extends": "../typescript/base.json",
   "include": [
-    "src",
-    "./build.ts"
+    "./index.ts",
   ],
   "compilerOptions": {
-    "baseUrl": "../../../", 
+    "baseUrl": ".", 
     "paths": {
       "@swapkit/toolbox-utxo": ["./packages/toolboxes/utxo/src/index.ts"],
       "@swapkit/*": ["./packages/*/src/index.ts"]

@@ -1,4 +1,4 @@
-import { Chain, FeeOption, ProviderName, AssetValue } from "../../../core";
+import { Chain, FeeOption, ProviderName, AssetValue, ChainToChainId } from "../../../core/src/index";
 import { getSwapKitClient } from "./client";
 import { printNetworkSummary, clearNetworkLogs } from "./networkUtils";
 import { validateAsset, TokenProvider } from "./tokenValidator";
@@ -412,7 +412,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       }
     } catch (error) {
       logger.error(`\n❌ Échec de la connexion des portefeuilles:`, error);
-      return null;
+      // return null;
     }
 
     // Vérifier si nous pouvons utiliser le plugin ThorChain directement
@@ -1141,8 +1141,51 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     // Utiliser une assertion de type pour contourner les problèmes de typage
     logger.debug("\nExécution du swap avec les paramètres:", swapParams);
     // const txHash = "DEBUG_TX_HASH"; // Pour le débogage, on utilise une valeur factice
+    // ### execution Utiliser l'API SwapKit pour exécuter le swap
     // Dans un environnement réel, décommentez la ligne suivante:
-    const txHash = await (swapKit.swap as any)(swapParams);
+    let txHash;
+    try {
+      // Tentative d'exécution du swap
+      txHash = await (swapKit.swap as any)(swapParams);
+      logger.info(`\n✅ Swap initié avec succès! Hash de transaction: ${txHash}`);
+    } catch (swapError) {
+      // Gestion détaillée de l'erreur
+      logger.error(`\n❌ Erreur lors de l'exécution du swap: ${swapError.message}`);
+      
+      // Analyse de l'erreur pour fournir des informations plus précises
+      let errorCode = "SWAP_EXECUTION_FAILED";
+      let errorMessage = swapError.message || "Erreur inconnue lors de l'exécution du swap";
+      let errorDetails: any = {};
+      
+      // Extraire les détails de l'erreur si disponibles
+      if (swapError.code) {
+        errorCode = swapError.code;
+      }
+      
+      if (swapError.details) {
+        errorDetails = swapError.details;
+      } else if (swapError.data) {
+        errorDetails = swapError.data;
+      }
+      
+      // Vérifier si l'erreur est liée au wallet
+      if (errorMessage.includes("wallet") || errorMessage.includes("signer") || errorMessage.includes("connect")) {
+        errorCode = "WALLET_ERROR";
+        errorDetails.suggestion = "Vérifiez que le wallet est correctement connecté et configuré";
+      }
+      
+      // Retourner une réponse d'erreur structurée
+      return {
+        status: "error",
+        errorCode,
+        errorMessage,
+        errorDetails,
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // Si on arrive ici, c'est que le swap a été initié avec succès
+    // Continuer avec le reste du code qui utilise txHash
 
     // ÉTAPE 3: Suivre la transaction
     logger.info("\nℹ️ ÉTAPE 3: Suivi de la transaction...");
@@ -1166,6 +1209,32 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
     logger.info("\n===== Résumé des appels réseau =====\n");
     printNetworkSummary();
 
+    // Récupérer les détails de la transaction pour obtenir le bloc et le chainId
+    let blockNumber;
+    let transactionChainId;
+
+    try {
+      // Préparer les paramètres pour l'appel à l'API
+      const trackerParams = {
+        chainId: ChainToChainId[explorerChain], // Convertir la chaîne en chainId
+        hash: txHash
+      };
+
+      // Appeler l'API pour obtenir les détails de la transaction
+      logger.info("\nRécupération des détails de la transaction...");
+      const trackerResponse = await swapKit.api.getTrackerDetails(trackerParams);
+
+      logger.info('trackerResponse', trackerResponse)
+      // Extraire le bloc et le chainId
+      blockNumber = trackerResponse.block;
+      transactionChainId = trackerResponse.chainId;
+
+      logger.info(`Bloc: ${blockNumber}, ChainId: ${transactionChainId}`);
+    } catch (trackerError) {
+      logger.warn("\n⚠️ Impossible de récupérer les détails de la transaction:", trackerError);
+      logger.warn("Les informations de bloc et de chainId ne seront pas incluses dans la réponse.");
+    }
+
     return {
       status: "success",
       txHash,
@@ -1174,6 +1243,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       destinationAsset: destinationAsset.toString(),
       amount,
       expectedOutput: bestRoute.expectedBuyAmount,
+      ...(blockNumber && { block: blockNumber }),
+      ...(transactionChainId && { chainId: transactionChainId })
     };
   } catch (error) {
     logger.error("\n❌ Erreur lors de l'exécution du swap:", error);

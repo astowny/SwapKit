@@ -1,4 +1,4 @@
-export * from "@swapkit/contracts";
+export * from "../../contracts/src/index";
 export * from "./types/index";
 
 /**

@@ -5,8 +5,8 @@ import {
   SwapKitError,
   derivationPathToString,
   getWalletFormatFor,
-} from "@swapkit/helpers";
-import type { Psbt, UTXOType } from "@swapkit/toolbox-utxo";
+} from "../../../../swapkit/helpers/src/index";
+import type { Psbt, UTXOType } from "../../../../toolboxes/utxo/src/index";
 
 import { getLedgerTransport } from "../helpers/getLedgerTransport";
 
@@ -21,7 +21,7 @@ const signUTXOTransaction = async (
   { psbt, inputUtxos, btcApp, derivationPath }: Params,
   options?: Partial<CreateTransactionArg>,
 ) => {
-  const { Transaction } = await import("@swapkit/toolbox-utxo");
+  const { Transaction } = await import("../../../../toolboxes/utxo/src/index");
 
   const inputs = inputUtxos.map((item) => {
     const utxoTx = Transaction.fromHex(item.txHex || "");
@@ -108,7 +108,7 @@ const BaseLedgerUTXO = ({
         );
       },
       getAddress: async () => {
-        const { toCashAddress } = await import("@swapkit/toolbox-utxo");
+        const { toCashAddress } = await import("../../../../toolboxes/utxo/src/index");
 
         await checkBtcAppAndCreateTransportWebUSB(false);
 

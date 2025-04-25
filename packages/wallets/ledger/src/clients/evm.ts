@@ -1,17 +1,17 @@
 import type EthereumApp from "@ledgerhq/hw-app-eth";
 import {
-  ChainId,
-  type DerivationPathArray,
-  NetworkDerivationPath,
-  derivationPathToString,
-} from "@swapkit/helpers";
-import {
   AbstractSigner,
   type Provider,
   Signature,
   Transaction,
   type TransactionRequest,
 } from "ethers";
+import {
+  ChainId,
+  type DerivationPathArray,
+  NetworkDerivationPath,
+  derivationPathToString,
+} from "../../../../swapkit/helpers/src/index";
 
 import { getLedgerTransport } from "../helpers/getLedgerTransport";
 

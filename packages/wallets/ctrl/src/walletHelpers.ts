@@ -1,4 +1,6 @@
 import type { Keplr } from "@keplr-wallet/types";
+import type { ApproveParams, CallParams, EVMTxParams } from "@swapkit/toolbox-evm";
+import type { BrowserProvider, Eip1193Provider } from "ethers";
 import {
   type AssetValue,
   Chain,
@@ -11,11 +13,9 @@ import {
   WalletOption,
   erc20ABI,
   getRPCUrl,
-} from "@swapkit/helpers";
-import type { TransferParams } from "@swapkit/toolbox-cosmos";
-import type { ApproveParams, CallParams, EVMTxParams } from "@swapkit/toolbox-evm";
-import type { PublicKey, SOLToolbox, SolanaProvider } from "@swapkit/toolbox-solana";
-import type { BrowserProvider, Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
+import type { TransferParams } from "../../../toolboxes/cosmos/src/index";
+import type { PublicKey, SOLToolbox, SolanaProvider } from "../../../toolboxes/solana/src/index";
 
 type TransactionMethod = "transfer" | "deposit";
 
@@ -208,7 +208,7 @@ export function cosmosTransfer({
 }) {
   return async ({ from, recipient, assetValue, memo }: TransferParams) => {
     const { getMsgSendDenom, createSigningStargateClient } = await import(
-      "@swapkit/toolbox-cosmos"
+      "../../../toolboxes/cosmos/src/index"
     );
     await window.xfi?.keplr?.enable(chainId);
     // @ts-ignore

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
-import { Chain } from '@swapkit/helpers';
+import { Chain } from '../helpers/src/index';
 
 import { executeRealSwap } from './core/swap/realSwap';
 import { getAllChainBalances, getChainBalance, thorchainSupportedChains } from './core/balance/getAllBalances';

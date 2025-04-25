@@ -10,8 +10,8 @@ import {
   filterSupportedChains,
   pickEvmApiKey,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import type { Psbt, UTXOTransferParams, UTXOType } from "@swapkit/toolbox-utxo";
+} from "../../../swapkit/helpers/src/index";
+import type { Psbt, UTXOTransferParams, UTXOType } from "../../../toolboxes/utxo/src/index";
 
 export const TREZOR_SUPPORTED_CHAINS = [
   Chain.Arbitrum,
@@ -97,7 +97,7 @@ async function getToolbox({
     case Chain.Dogecoin:
     case Chain.Litecoin: {
       const { toCashAddress, getToolboxByChain, BCHToolbox } = await import(
-        "@swapkit/toolbox-utxo"
+        "../../../toolboxes/utxo/src/index"
       );
 
       const api = apis?.[chain];

@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { ProviderName, RequestClient, SwapKitError } from "@swapkit/helpers";
+import { ProviderName, RequestClient, SwapKitError } from "../../../helpers/src/index";
 
 import {
   type BrokerDepositChannelParams,
@@ -124,6 +124,7 @@ export async function getSwapQuote<T extends boolean>(
           payload: searchParams,
         })
       : undefined;
+  console.log("debug apikey in getSwapQuote:", apiKey);
   const response = await RequestClient.post<QuoteResponse>(url, {
     json: searchParams,
     headers: getAuthHeaders({ hash, apiKey, referer }),

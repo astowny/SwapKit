@@ -1,17 +1,4 @@
 import {
-  type Asset,
-  type AssetValue,
-  Chain,
-  ContractAddress,
-  type EVMChain,
-  FeeOption,
-  SwapKitError,
-  SwapKitNumber,
-  type WalletTxParams,
-  erc20ABI,
-  isGasAsset,
-} from "@swapkit/helpers";
-import {
   BrowserProvider,
   Contract,
   type ContractTransaction,
@@ -27,6 +14,19 @@ import {
   hexlify,
   toUtf8Bytes,
 } from "ethers";
+import {
+  type Asset,
+  type AssetValue,
+  Chain,
+  ContractAddress,
+  type EVMChain,
+  FeeOption,
+  SwapKitError,
+  SwapKitNumber,
+  type WalletTxParams,
+  erc20ABI,
+  isGasAsset,
+} from "../../../../swapkit/helpers/src/index";
 
 import {
   type ARBToolbox,

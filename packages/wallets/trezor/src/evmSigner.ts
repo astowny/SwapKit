@@ -1,3 +1,4 @@
+import type { JsonRpcProvider, Provider, TransactionRequest } from "ethers";
 import {
   type Chain,
   ChainToChainId,
@@ -6,8 +7,7 @@ import {
   SwapKitNumber,
   WalletOption,
   derivationPathToString,
-} from "@swapkit/helpers";
-import type { JsonRpcProvider, Provider, TransactionRequest } from "ethers";
+} from "../../../swapkit/helpers/src/index";
 
 type TrezorEVMSignerParams = {
   chain: Chain;

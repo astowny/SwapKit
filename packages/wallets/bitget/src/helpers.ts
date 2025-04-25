@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import type { Eip1193Provider } from "ethers";
 import {
   type AssetValue,
   Chain,
@@ -12,16 +13,19 @@ import {
   pickEvmApiKey,
   prepareNetworkSwitch,
   switchEVMWalletNetwork,
-} from "@swapkit/helpers";
-import type { TransferParams } from "@swapkit/toolbox-cosmos";
-import type { AlchemyApiType, CovalentApiType, EthplorerApiType } from "@swapkit/toolbox-evm";
-import type { Psbt, UTXOTransferParams } from "@swapkit/toolbox-utxo";
-import type { Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
+import type { TransferParams } from "../../../toolboxes/cosmos/src/index";
+import type {
+  AlchemyApiType,
+  CovalentApiType,
+  EthplorerApiType,
+} from "../../../toolboxes/evm/src/index";
+import type { Psbt, UTXOTransferParams } from "../../../toolboxes/utxo/src/index";
 
 export function cosmosTransfer(rpcUrl?: string) {
   return async ({ from, recipient, assetValue, memo }: TransferParams) => {
     const { getMsgSendDenom, createSigningStargateClient } = await import(
-      "@swapkit/toolbox-cosmos"
+      "../../../toolboxes/cosmos/src/index"
     );
     if (!(window.bitkeep && "keplr" in window.bitkeep)) {
       throw new SwapKitError("wallet_bitkeep_not_found");
@@ -91,7 +95,7 @@ export async function getWalletForChain({
 
       const wallet = bitget.ethereum;
 
-      const { getProvider } = await import("@swapkit/toolbox-evm");
+      const { getProvider } = await import("../../../toolboxes/evm/src/index");
 
       const evmWallet = await getWeb3WalletMethods({
         chain,
@@ -117,7 +121,7 @@ export async function getWalletForChain({
 
       const { unisat: wallet } = bitget;
 
-      const { Psbt, BTCToolbox } = await import("@swapkit/toolbox-utxo");
+      const { Psbt, BTCToolbox } = await import("../../../toolboxes/utxo/src/index");
 
       const [address] = await wallet.requestAccounts();
       const apiClient = typeof api === "object" && "getConfirmedBalance" in api ? api : undefined;
@@ -149,7 +153,7 @@ export async function getWalletForChain({
       const accounts = await wallet.getOfflineSignerOnlyAmino(ChainId.Cosmos).getAccounts();
       if (!accounts?.[0]) throw new Error("No cosmos account found");
 
-      const { GaiaToolbox } = await import("@swapkit/toolbox-cosmos");
+      const { GaiaToolbox } = await import("../../../toolboxes/cosmos/src/index");
       const [{ address }] = accounts;
 
       return {
@@ -164,7 +168,7 @@ export async function getWalletForChain({
         throw new SwapKitError("wallet_bitkeep_not_found");
       }
 
-      const { SOLToolbox } = await import("@swapkit/toolbox-solana");
+      const { SOLToolbox } = await import("../../../toolboxes/solana/src/index");
       const provider = bitget?.solana;
 
       const providerConnection = await provider.connect();
@@ -219,7 +223,7 @@ export const getWeb3WalletMethods = async ({
   apiKey?: string;
   api?: EthplorerApiType | CovalentApiType | AlchemyApiType;
 }) => {
-  const { getToolboxByChain } = await import("@swapkit/toolbox-evm");
+  const { getToolboxByChain } = await import("../../../toolboxes/evm/src/index");
   const { BrowserProvider } = await import("ethers");
   if (!ethereumWindowProvider) throw new SwapKitError("wallet_provider_not_found");
 

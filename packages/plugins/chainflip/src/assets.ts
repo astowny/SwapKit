@@ -1,4 +1,4 @@
-import { type AssetValue, SwapKitError } from "@swapkit/helpers";
+import { type AssetValue, SwapKitError } from "../../../swapkit/helpers/src/index";
 import { assetIdentifierToChainflipTicker } from "./broker";
 
 export const toCFTicker = (asset: AssetValue) => {

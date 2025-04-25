@@ -1,5 +1,5 @@
-import { AssetValue, Chain, ChainToChainId } from "@swapkit/helpers";
-import { erc20ABI } from "@swapkit/contracts";
+import { AssetValue, Chain, ChainToChainId } from "../../helpers/src/index";
+import { erc20ABI } from "../../../contracts/src/index";
 import { getSwapKitClient } from "./swap/client";
 import { createEvmApiFactory, ApiType } from "./swap/apiFactory";
 

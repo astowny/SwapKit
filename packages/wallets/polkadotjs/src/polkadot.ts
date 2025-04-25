@@ -4,7 +4,7 @@ import {
   WalletOption,
   filterSupportedChains,
   setRequestClientConfig,
-} from "@swapkit/helpers";
+} from "../../../swapkit/helpers/src/index";
 import { getWalletForChain } from "./helpers";
 
 const POLKADOT_SUPPORTED_CHAINS = [Chain.Polkadot] as const;

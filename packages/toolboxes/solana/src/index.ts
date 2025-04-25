@@ -1,5 +1,5 @@
 import type { PublicKey, SendOptions, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { Chain } from "@swapkit/helpers";
+import { Chain } from "../../../../swapkit/helpers/src/index";
 import type { SOLToolbox } from "./toolbox";
 
 type DisplayEncoding = "utf8" | "hex";

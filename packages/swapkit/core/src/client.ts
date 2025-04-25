@@ -4,9 +4,12 @@ import type {
   QuoteRequest,
   QuoteResponseRoute,
   TrackerParams,
-} from "@swapkit/api";
-import { SwapKitApi } from "@swapkit/api";
+} from "../../api/src/index";
+import { SwapKitApi } from "../../api/src/index";
 
+import type { TransferParams as CosmosTransferParams } from "../../../../toolboxes/cosmos/src/index";
+import type { TransferParams as EVMTransferParams } from "../../../../toolboxes/evm/src/index";
+import type { UTXOTransferParams } from "../../../../toolboxes/utxo/src/index";
 import {
   ApproveMode,
   type ApproveReturnType,
@@ -26,10 +29,7 @@ import {
   type SwapKitPluginParams,
   type SwapKitWallet,
   type SwapParams,
-} from "@swapkit/helpers";
-import type { TransferParams as CosmosTransferParams } from "@swapkit/toolbox-cosmos";
-import type { TransferParams as EVMTransferParams } from "@swapkit/toolbox-evm";
-import type { UTXOTransferParams } from "@swapkit/toolbox-utxo";
+} from "../../helpers/src/index";
 
 import {
   getExplorerAddressUrl as getAddressUrl,
@@ -205,17 +205,20 @@ export function SwapKit<Plugins extends PluginsType, Wallets extends WalletsType
    * @Public
    */
   function getWallet<T extends Chain>(chain: T) {
-    console.log(`\n[DEBUG] Getting wallet for chain: ${chain}`);
-    console.log(`[DEBUG] Connected wallets:`, Object.keys(connectedWallets));
+    // console.log(`\n[DEBUG] Getting wallet for chain: ${chain}`);
+    // console.log(`[DEBUG] Connected wallets:`, Object.keys(connectedWallets));
 
     const wallet = connectedWallets[chain];
 
     if (wallet) {
-      console.log(`[DEBUG] Found wallet for chain ${chain}:`, {
-        address: wallet.address,
-        walletType: wallet.walletType,
-        hasBalance: Array.isArray(wallet.balance) && wallet.balance.length > 0,
-      });
+      console.log(
+        `[DEBUG] Found wallet for chain ${chain}:`,
+        //   {
+        //   address: wallet.address,
+        //   walletType: wallet.walletType,
+        //   hasBalance: Array.isArray(wallet.balance) && wallet.balance.length > 0,
+        // }
+      );
     } else {
       console.log(`[DEBUG] No wallet found for chain ${chain}`);
     }
@@ -340,7 +343,7 @@ export function SwapKit<Plugins extends PluginsType, Wallets extends WalletsType
   }: { chain: Chain; signature: string; message: string; address: string }) {
     switch (chain) {
       case Chain.THORChain: {
-        const { getToolboxByChain } = await import("@swapkit/toolbox-cosmos");
+        const { getToolboxByChain } = await import("../../../../toolboxes/cosmos/src/index");
         const toolbox = getToolboxByChain(chain);
         return toolbox().verifySignature({ signature, message, address });
       }
@@ -444,7 +447,7 @@ export function SwapKit<Plugins extends PluginsType, Wallets extends WalletsType
       case Chain.Maya:
       case Chain.Kujira:
       case Chain.Cosmos: {
-        const { estimateTransactionFee } = await import("@swapkit/toolbox-cosmos");
+        const { estimateTransactionFee } = await import("../../../../toolboxes/cosmos/src/index");
         return estimateTransactionFee(params);
       }
 

@@ -6,6 +6,9 @@ import type {
   Transaction,
 } from "@ledgerhq/wallet-api-client";
 import { FAMILIES, WalletAPIClient, WindowMessageTransport } from "@ledgerhq/wallet-api-client";
+import { ETHToolbox, getProvider } from "@swapkit/toolbox-evm";
+import { BigNumber as BigNumberJS } from "bignumber.js";
+import { VoidSigner } from "ethers";
 import {
   AssetValue,
   BaseDecimal,
@@ -16,11 +19,8 @@ import {
   SwapKitNumber,
   WalletOption,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import { ETHToolbox, getProvider } from "@swapkit/toolbox-evm";
-import type { UTXOTransferParams } from "@swapkit/toolbox-utxo";
-import { BigNumber as BigNumberJS } from "bignumber.js";
-import { VoidSigner } from "ethers";
+} from "../../../swapkit/helpers/src/index";
+import type { UTXOTransferParams } from "../../../toolboxes/utxo/src/index";
 
 export type LedgerAccount = Account & { multichainBalance?: AssetValue[] };
 
@@ -220,7 +220,7 @@ export const getLedgerLiveWallet = async ({
     }
 
     case Chain.Cosmos: {
-      const { GaiaToolbox } = await import("@swapkit/toolbox-cosmos");
+      const { GaiaToolbox } = await import("../../../toolboxes/cosmos/src/index");
       const ledgerLiveClient = CosmosLedgerLive();
       const toolbox = GaiaToolbox();
 
@@ -292,7 +292,7 @@ export const getLedgerLiveWallet = async ({
     case Chain.Bitcoin: {
       const ledgerLiveClient = BitcoinLedgerLive();
       const { BTCToolbox, LTCToolbox, BCHToolbox, DOGEToolbox } = await import(
-        "@swapkit/toolbox-utxo"
+        "../../../toolboxes/utxo/src/index"
       );
       const toolbox =
         chain === Chain.Bitcoin

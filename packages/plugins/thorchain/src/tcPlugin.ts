@@ -1,4 +1,4 @@
-import type { QuoteResponseRoute } from "@swapkit/api";
+import type { QuoteResponseRoute } from "../../../swapkit/api/src/index";
 import {
   AssetValue,
   Chain,
@@ -15,7 +15,7 @@ import {
   TCEthereumVaultAbi,
   type UTXOChain,
   getMemoForLoan,
-} from "@swapkit/helpers";
+} from "../../../swapkit/helpers/src/index";
 
 import { basePlugin } from "./basePlugin";
 import { prepareTxParams, validateAddressType } from "./shared";
@@ -78,7 +78,7 @@ function plugin({ getWallet, stagenet = false }: SwapKitPluginParams) {
         case Chain.Base:
         case Chain.Avalanche: {
           const wallet = getWallet(chain);
-          const { getChecksumAddressFromAsset } = await import("@swapkit/toolbox-evm");
+          const { getChecksumAddressFromAsset } = await import("../../../toolboxes/evm/src/index");
 
           const ChainSpecificAbi = {
             [Chain.Avalanche]: TCAvalancheDepositABI,
@@ -177,6 +177,7 @@ function plugin({ getWallet, stagenet = false }: SwapKitPluginParams) {
     }
 
     const { address: recipient } = await getInboundDataByChain(assetValue.chain);
+    console.log("swapping...");
 
     return deposit({
       expiration: Number(expiration),

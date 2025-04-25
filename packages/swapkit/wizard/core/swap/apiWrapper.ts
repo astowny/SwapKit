@@ -1,4 +1,4 @@
-import { SwapKitApi } from '@swapkit/api';
+import { SwapKitApi } from '../../../api/src/index';
 import { withNetworkMonitoring } from './networkMonitor';
 
 // Configuration de base pour les API

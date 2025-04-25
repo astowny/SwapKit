@@ -13,7 +13,7 @@ import {
   type SubstrateChain,
   SwapKitError,
   SwapKitNumber,
-} from "@swapkit/helpers";
+} from "../../../../swapkit/helpers/src/index";
 
 import { Network, type SubstrateNetwork } from "../types/network";
 

@@ -1,5 +1,5 @@
 import { Chain } from "../../../../swapkit/core/src/index";
-import { createSwapKit } from "../../../../swapkit/sdk";
+import { createSwapKit } from "../../../../swapkit/sdk/src/index";
 
 // Importer les plugins disponibles
 import { ThorchainPlugin, MayachainPlugin } from "../../../../plugins/thorchain/src/index";
@@ -10,7 +10,7 @@ import { RadixPlugin } from "../../../../plugins/radix/src/index";
 
 // Importer les wallets
 import { keystoreWallet } from "../../../../wallets/keystore/src/index";
-import {wallets} from "../../../../swapkit/wallets"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from
+import {wallets} from "../../../../swapkit/wallets/src/index"; // necessaire de mettre tous les wallets si on veut supporter toutes les chaines en asset from pour l'execution des swaps
 
 // Importer notre factory d'API
 import { createEvmApiFactory, ApiType } from "./apiFactory";
@@ -97,7 +97,7 @@ const swapKitParams = {
   // Wallet Keystore
   wallets: {
     ...keystoreWallet,
-    // ...wallets
+    ...wallets
   }
 };
 

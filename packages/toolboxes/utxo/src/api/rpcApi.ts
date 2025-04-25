@@ -1,4 +1,4 @@
-import { RequestClient } from "@swapkit/helpers";
+import { RequestClient } from "../../../../swapkit/helpers/src/index";
 
 import { uniqid } from "../utils/utils";
 

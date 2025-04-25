@@ -5,7 +5,7 @@
  * le problème avec la fonction filterSupportedChains.
  */
 
-import { Chain } from "@swapkit/helpers";
+import { Chain } from "../../helpers/src/index";
 import { getSwapKitClient } from "./swap/client";
 
 // Type pour les options de connectKeystore

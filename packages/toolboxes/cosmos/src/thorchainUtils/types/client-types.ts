@@ -6,7 +6,13 @@ import type {
 } from "@cosmjs/amino";
 import type { EncodeObject, OfflineDirectSigner, Registry } from "@cosmjs/proto-signing";
 import type { AminoTypes, Account as CosmosAccount } from "@cosmjs/stargate";
-import type { Asset, AssetValue, Chain, ChainId, SwapKitNumber } from "@swapkit/helpers";
+import type {
+  Asset,
+  AssetValue,
+  Chain,
+  ChainId,
+  SwapKitNumber,
+} from "../../../../swapkit/helpers/src/index";
 
 import type {
   buildAminoMsg,

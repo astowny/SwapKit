@@ -2,7 +2,7 @@ import {
   type DerivationPathArray,
   NetworkDerivationPath,
   derivationPathToString,
-} from "@swapkit/helpers";
+} from "../../../../swapkit/helpers/src/index";
 import { CosmosLedgerInterface } from "../interfaces/CosmosLedgerInterface";
 
 export class CosmosLedger extends CosmosLedgerInterface {

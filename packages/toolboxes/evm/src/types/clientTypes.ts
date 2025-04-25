@@ -1,5 +1,5 @@
-import type { AssetValue, FeeOption, WalletTxParams } from "@swapkit/helpers";
 import type { BigNumberish, JsonFragment, Transaction } from "ethers";
+import type { AssetValue, FeeOption, WalletTxParams } from "../../../../swapkit/helpers/src/index";
 
 import type {
   ARBToolbox,

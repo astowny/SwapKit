@@ -10,9 +10,9 @@ import {
   getRPCUrl,
   pickEvmApiKey,
   setRequestClientConfig,
-} from "@swapkit/helpers";
-import type { DepositParam, TransferParams } from "@swapkit/toolbox-cosmos";
-import type { UTXOBuildTxParams } from "@swapkit/toolbox-utxo";
+} from "../../../swapkit/helpers/src/index";
+import type { DepositParam, TransferParams } from "../../../toolboxes/cosmos/src/index";
+import type { UTXOBuildTxParams } from "../../../toolboxes/utxo/src/index";
 
 import { LEDGER_SUPPORTED_CHAINS } from "./helpers/index";
 import { getLedgerAddress, getLedgerClient } from "./helpers/index";
@@ -75,7 +75,7 @@ const getToolbox = async ({
     case Chain.Dash:
     case Chain.Dogecoin:
     case Chain.Litecoin: {
-      const { getToolboxByChain } = await import("@swapkit/toolbox-utxo");
+      const { getToolboxByChain } = await import("../../../toolboxes/utxo/src/index");
       const params = {
         apiClient: apis[chain],
         apiKey: blockchairApiKey,
@@ -127,7 +127,7 @@ const getToolbox = async ({
 
     case Chain.Cosmos: {
       const { createSigningStargateClient, getMsgSendDenom, GaiaToolbox } = await import(
-        "@swapkit/toolbox-cosmos"
+        "../../../toolboxes/cosmos/src/index"
       );
       const toolbox = GaiaToolbox();
       const signer = await getLedgerClient({ chain, derivationPath });
@@ -178,7 +178,7 @@ const getToolbox = async ({
         getDefaultChainFee,
         fromBase64,
         parseAminoMessageForDirectSigning,
-      } = await import("@swapkit/toolbox-cosmos");
+      } = await import("../../../toolboxes/cosmos/src/index");
       const toolbox = ThorchainToolbox({ stagenet: false });
       const signer = await getLedgerClient({ chain, derivationPath });
       const address = await getLedgerAddress({ chain, ledgerClient: signer });

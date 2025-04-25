@@ -1,4 +1,9 @@
-import { Chain, type ChainId, RequestClient, formatBigIntToSafeValue } from "@swapkit/helpers";
+import {
+  Chain,
+  type ChainId,
+  RequestClient,
+  formatBigIntToSafeValue,
+} from "../../../../swapkit/helpers/src/index";
 
 import type { AddressInfo } from "../types/ethplorer-api-types";
 const baseUrl = "https://api.ethplorer.io";

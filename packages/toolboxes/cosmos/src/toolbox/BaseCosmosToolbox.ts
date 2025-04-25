@@ -1,7 +1,13 @@
 import { Bip39, EnglishMnemonic, Slip10, Slip10Curve, stringToPath } from "@cosmjs/crypto";
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
-import { SwapKitApi } from "@swapkit/api";
-import { AssetValue, Chain, ChainId, ChainIdToChain, type DerivationPath } from "@swapkit/helpers";
+import { SwapKitApi } from "../../../../swapkit/api/src/index";
+import {
+  AssetValue,
+  Chain,
+  ChainId,
+  ChainIdToChain,
+  type DerivationPath,
+} from "../../../../swapkit/helpers/src/index";
 
 import { CosmosClient } from "../cosmosClient";
 import type { ToolboxParams } from "../index";

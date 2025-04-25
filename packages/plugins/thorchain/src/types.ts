@@ -6,7 +6,7 @@ import type {
   MemoType,
   ThorchainWallets,
   UTXOWallets,
-} from "@swapkit/helpers";
+} from "../../../swapkit/helpers/src/index";
 
 export type SupportedChain = keyof (EVMWallets & UTXOWallets & ThorchainWallets & CosmosWallets);
 

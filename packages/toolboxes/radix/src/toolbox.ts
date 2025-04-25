@@ -28,7 +28,7 @@ import { RadixDappToolkit } from "@radixdlt/radix-dapp-toolkit";
 //   enumeration,
 //   generateRandomNonce,
 // } from "@radixdlt/radix-engine-toolkit";
-import { AssetValue, Chain } from "@swapkit/helpers";
+import { AssetValue, Chain } from "../../../../swapkit/helpers/src/index";
 import type { RadixNetwork } from "./types";
 
 type RadixGetBalanceParams = {

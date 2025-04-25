@@ -1,5 +1,5 @@
 import { getSwapKitClient } from "./client";
-import { AssetValue } from "@swapkit/sdk";
+import { AssetValue } from "../../sdk/src/index";
 
 AssetValue.loadStaticAssets()
 

@@ -1,19 +1,19 @@
-import { bitgetWallet } from "@swapkit/wallet-bitget";
-import { coinbaseWallet } from "@swapkit/wallet-coinbase";
-import { ctrlWallet } from "@swapkit/wallet-ctrl";
-import { evmWallet } from "@swapkit/wallet-evm-extensions";
-import { keepkeyWallet } from "@swapkit/wallet-keepkey";
-import { keepkeyBexWallet } from "@swapkit/wallet-keepkey-bex";
-import { keplrWallet } from "@swapkit/wallet-keplr";
-import { keystoreWallet } from "@swapkit/wallet-keystore";
-import { ledgerWallet } from "@swapkit/wallet-ledger";
-import { okxWallet } from "@swapkit/wallet-okx";
-import { phantomWallet } from "@swapkit/wallet-phantom";
-import { polkadotWallet } from "@swapkit/wallet-polkadotjs";
-import { radixWallet } from "@swapkit/wallet-radix";
-import { talismanWallet } from "@swapkit/wallet-talisman";
-import { trezorWallet } from "@swapkit/wallet-trezor";
-import { walletconnectWallet } from "@swapkit/wallet-wc";
+import { bitgetWallet } from "../../../wallets/bitget/src/index";
+import { coinbaseWallet } from "../../../wallets/coinbase/src/index";
+import { ctrlWallet } from "../../../wallets/ctrl/src/index";
+import { evmWallet } from "../../../wallets/evm-extensions/src/index";
+import { keepkeyBexWallet } from "../../../wallets/keepkey-bex/src/index";
+import { keepkeyWallet } from "../../../wallets/keepkey/src/index";
+import { keplrWallet } from "../../../wallets/keplr/src/index";
+import { keystoreWallet } from "../../../wallets/keystore/src/index";
+import { ledgerWallet } from "../../../wallets/ledger/src/index";
+import { okxWallet } from "../../../wallets/okx/src/index";
+import { phantomWallet } from "../../../wallets/phantom/src/index";
+import { polkadotWallet } from "../../../wallets/polkadotjs/src/index";
+import { radixWallet } from "../../../wallets/radix/src/index";
+import { talismanWallet } from "../../../wallets/talisman/src/index";
+import { trezorWallet } from "../../../wallets/trezor/src/index";
+import { walletconnectWallet } from "../../../wallets/wc/src/index";
 
 export const wallets = {
   ...bitgetWallet,

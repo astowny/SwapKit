@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   type AssetValue,
   Chain,
@@ -6,8 +7,7 @@ import {
   FeeTypeEnum,
   ProviderName,
   WarningCodeEnum,
-} from "@swapkit/helpers";
-import { z } from "zod";
+} from "../../../helpers/src/index";
 
 export enum PriorityLabel {
   CHEAPEST = "CHEAPEST",

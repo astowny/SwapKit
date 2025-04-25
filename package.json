@@ -57,5 +57,11 @@
     "packages/wallets/*",
     "playgrounds/*",
     "tools/*"
-  ]
+  ],
+  "bun": {
+    "resolveExtensions": [".ts", ".tsx", ".js", ".json"],
+    "resolve": {
+      "@swapkit/*": "./packages/swapkit/*/src/index.ts"
+    }
+  }
 }

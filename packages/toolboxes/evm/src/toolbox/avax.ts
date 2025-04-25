@@ -1,3 +1,4 @@
+import type { BrowserProvider, JsonRpcProvider, Signer } from "ethers";
 import {
   BaseDecimal,
   Chain,
@@ -5,8 +6,7 @@ import {
   ChainToExplorerUrl,
   type FeeOption,
   SwapKitError,
-} from "@swapkit/helpers";
-import type { BrowserProvider, JsonRpcProvider, Signer } from "ethers";
+} from "../../../../swapkit/helpers/src/index";
 
 import {
   type AlchemyApiType,

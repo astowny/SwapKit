@@ -4,7 +4,7 @@ import {
   type Chain,
   RequestClient,
   SwapKitNumber,
-} from "@swapkit/helpers";
+} from "../../../helpers/src/index";
 import type { LiquidityPositionRaw, PoolDetail, PoolPeriod, THORNameDetails } from "./types";
 
 const baseUrl = "https://mu.thorswap.net";

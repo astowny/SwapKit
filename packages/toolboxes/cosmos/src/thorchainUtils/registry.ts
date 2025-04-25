@@ -1,6 +1,6 @@
 import { Registry } from "@cosmjs/proto-signing";
 import { AminoTypes, defaultRegistryTypes } from "@cosmjs/stargate";
-import { Chain } from "@swapkit/helpers";
+import { Chain } from "../../../../swapkit/helpers/src/index";
 import * as types from "../thorchainUtils/types/proto/MsgCompiled";
 import { base64ToBech32, bech32ToBase64 } from "./addressFormat";
 

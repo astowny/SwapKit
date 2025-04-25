@@ -1,3 +1,5 @@
+import type { AlchemyApiType, CovalentApiType, EthplorerApiType } from "@swapkit/toolbox-evm";
+import type { Eip1193Provider } from "ethers";
 import {
   Chain,
   type ChainApis,
@@ -8,11 +10,9 @@ import {
   pickEvmApiKey,
   prepareNetworkSwitch,
   switchEVMWalletNetwork,
-} from "@swapkit/helpers";
-import type { GaiaToolbox } from "@swapkit/toolbox-cosmos";
-import type { AlchemyApiType, CovalentApiType, EthplorerApiType } from "@swapkit/toolbox-evm";
-import type { BTCToolbox, Psbt, UTXOTransferParams } from "@swapkit/toolbox-utxo";
-import type { Eip1193Provider } from "ethers";
+} from "../../../swapkit/helpers/src/index";
+import type { GaiaToolbox } from "../../../toolboxes/cosmos/src/index";
+import type { BTCToolbox, Psbt, UTXOTransferParams } from "../../../toolboxes/utxo/src/index";
 
 const cosmosTransfer =
   (rpcUrl?: string) =>
@@ -24,7 +24,7 @@ const cosmosTransfer =
     const { keplr: wallet } = window.okxwallet;
     const offlineSigner = wallet?.getOfflineSignerOnlyAmino(ChainId.Cosmos);
 
-    const { createSigningStargateClient } = await import("@swapkit/toolbox-cosmos");
+    const { createSigningStargateClient } = await import("../../../toolboxes/cosmos/src/index");
     const cosmJS = await createSigningStargateClient(
       rpcUrl || getRPCUrl(Chain.Cosmos),
       offlineSigner,
@@ -102,7 +102,7 @@ export const getWalletForChain = async ({
       }
       const { bitcoin: wallet } = window.okxwallet;
 
-      const { Psbt, BTCToolbox } = await import("@swapkit/toolbox-utxo");
+      const { Psbt, BTCToolbox } = await import("../../../toolboxes/utxo/src/index");
 
       const api = apis?.[chain];
 
@@ -134,7 +134,7 @@ export const getWalletForChain = async ({
       const accounts = await wallet.getOfflineSignerOnlyAmino(ChainId.Cosmos).getAccounts();
       if (!accounts?.[0]) throw new Error("No cosmos account found");
 
-      const { GaiaToolbox } = await import("@swapkit/toolbox-cosmos");
+      const { GaiaToolbox } = await import("../../../toolboxes/cosmos/src/index");
       const [{ address }] = accounts;
 
       return {

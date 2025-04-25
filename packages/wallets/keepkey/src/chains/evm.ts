@@ -1,13 +1,13 @@
 import type { KeepKeySdk } from "@keepkey/keepkey-sdk";
+import type { JsonRpcProvider, Provider, TransactionRequest } from "ethers";
+import { AbstractSigner } from "ethers";
 import {
   type Chain,
   ChainToChainId,
   type DerivationPathArray,
   NetworkDerivationPath,
   derivationPathToString,
-} from "@swapkit/helpers";
-import type { JsonRpcProvider, Provider, TransactionRequest } from "ethers";
-import { AbstractSigner } from "ethers";
+} from "../../../../swapkit/helpers/src/index";
 
 import { bip32ToAddressNList } from "../helpers/coins";
 

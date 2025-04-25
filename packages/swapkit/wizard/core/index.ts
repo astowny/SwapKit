@@ -1,5 +1,5 @@
-import { AssetValue, Chain, FeeOption } from "@swapkit/core";
-import { SwapKitApi } from "@swapkit/api";
+import { AssetValue, Chain, FeeOption } from "../../core/src/index";
+import { SwapKitApi } from "../../api/src/index";
 import { getSwapKitClient } from "./client";
 
 // Fonction pour estimer un swap de THOR.RUNE vers BNB.BNB

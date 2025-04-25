@@ -6,8 +6,8 @@ import {
   type DerivationPathArray,
   derivationPathToString,
   getRPCUrl,
-} from "@swapkit/helpers";
-import type { BaseCosmosToolboxType, TransferParams } from "@swapkit/toolbox-cosmos";
+} from "../../../../swapkit/helpers/src/index";
+import type { BaseCosmosToolboxType, TransferParams } from "../../../../toolboxes/cosmos/src/index";
 
 import { bip32ToAddressNList } from "../helpers/coins";
 
@@ -21,7 +21,7 @@ export const cosmosWalletMethods = async ({
   derivationPath?: DerivationPathArray;
 }): Promise<BaseCosmosToolboxType & { address: string }> => {
   const { DEFAULT_COSMOS_FEE_MAINNET, GaiaToolbox, createStargateClient } = await import(
-    "@swapkit/toolbox-cosmos"
+    "../../../../toolboxes/cosmos/src/index"
   );
 
   try {

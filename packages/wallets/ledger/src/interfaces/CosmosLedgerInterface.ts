@@ -3,7 +3,7 @@ import {
   LedgerErrorCode,
   NetworkDerivationPath,
   SwapKitError,
-} from "@swapkit/helpers";
+} from "../../../../swapkit/helpers/src/index";
 
 import { THORChainApp } from "../clients/thorchain/lib";
 import { getLedgerTransport } from "../helpers/getLedgerTransport";

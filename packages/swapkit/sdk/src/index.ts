@@ -1,13 +1,18 @@
-import { ChainflipPlugin } from "@swapkit/plugin-chainflip";
-import { EVMPlugin } from "@swapkit/plugin-evm";
-import { KadoPlugin } from "@swapkit/plugin-kado";
-import { RadixPlugin } from "@swapkit/plugin-radix";
-import { MayachainPlugin, ThorchainPlugin } from "@swapkit/plugin-thorchain";
-import { wallets as defaultWallets } from "@swapkit/wallets";
-import { type PluginsType, SwapKit, type SwapKitParams, type WalletsType } from "../../core/src";
+import { ChainflipPlugin } from "../../../plugins/chainflip/src/index";
+import { EVMPlugin } from "../../../plugins/evm/src/index";
+import { KadoPlugin } from "../../../plugins/kado/src/index";
+import { RadixPlugin } from "../../../plugins/radix/src/index";
+import { MayachainPlugin, ThorchainPlugin } from "../../../plugins/thorchain/src/index";
+import {
+  type PluginsType,
+  SwapKit,
+  type SwapKitParams,
+  type WalletsType,
+} from "../../core/src/index";
+import { wallets as defaultWallets } from "../../wallets/src/index";
 
 export * from "../../core/src/index";
-export { getTokenIcon, tokenLists } from "@swapkit/tokens";
+export { getTokenIcon, tokenLists } from "../../tokens/src/index";
 
 export const defaultPlugins = {
   ...ChainflipPlugin,
@@ -33,4 +38,4 @@ export const createSwapKit = <
   });
 };
 
-export { SwapKitApi } from "@swapkit/api";
+export { SwapKitApi } from "../../api/src/index";

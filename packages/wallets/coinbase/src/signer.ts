@@ -1,5 +1,5 @@
-import { Chain, type ChainApis, pickEvmApiKey } from "@swapkit/helpers";
-import type { getToolboxByChain } from "@swapkit/toolbox-evm";
+import { Chain, type ChainApis, pickEvmApiKey } from "../../../swapkit/helpers/src/index";
+import type { getToolboxByChain } from "../../../toolboxes/evm/src/index";
 
 import type { CoinbaseWalletProvider } from "@coinbase/wallet-sdk";
 import type { createCoinbaseWalletSDK } from "@coinbase/wallet-sdk/dist/createCoinbaseWalletSDK.js";
@@ -25,7 +25,7 @@ export const getWalletForChain = async ({
     case Chain.Optimism:
     case Chain.Polygon:
     case Chain.BinanceSmartChain: {
-      const { getToolboxByChain } = await import("@swapkit/toolbox-evm");
+      const { getToolboxByChain } = await import("../../../toolboxes/evm/src/index");
       const { BrowserProvider } = await import("ethers");
 
       const api = apis?.[chain];

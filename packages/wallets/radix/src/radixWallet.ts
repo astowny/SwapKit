@@ -12,7 +12,7 @@ import {
   type ConnectWalletParams,
   WalletOption,
   setRequestClientConfig,
-} from "@swapkit/helpers";
+} from "../../../swapkit/helpers/src/index";
 
 const RadixMainnet = {
   networkId: 1,

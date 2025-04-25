@@ -1,4 +1,4 @@
-import type { RadixNetwork } from "@swapkit/toolbox-radix";
+import type { RadixNetwork } from "../../../../toolboxes/radix/src/index";
 import type { Chain } from "./chains";
 import type { ChainApis } from "./sdk";
 import type { ChainWallet, CryptoChain } from "./wallet";

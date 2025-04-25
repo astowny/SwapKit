@@ -1,4 +1,4 @@
-import type { tokenLists } from "@swapkit/tokens";
+import type { tokenLists } from "../../../tokens/src/index";
 
 export type TokenTax = { buy: number; sell: number };
 

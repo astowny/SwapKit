@@ -1,5 +1,5 @@
-import { Chain, FeeOption } from "@swapkit/helpers";
 import type { BrowserProvider, JsonRpcProvider, JsonRpcSigner, Signer } from "ethers";
+import { Chain, FeeOption } from "../../../../swapkit/helpers/src/index";
 
 import type { EthplorerApiType } from "../api/ethplorerApi";
 import { ethplorerApi } from "../api/ethplorerApi";

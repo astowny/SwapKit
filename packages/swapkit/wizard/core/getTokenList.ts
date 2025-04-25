@@ -1,4 +1,4 @@
-import { ProviderName } from "@swapkit/helpers";
+import { ProviderName } from "../../helpers/src/index";
 import { getSwapKitClient } from "./client";
 
 /**

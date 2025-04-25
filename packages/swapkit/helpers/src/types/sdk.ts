@@ -1,7 +1,7 @@
-import type { CovalentApiType, EthplorerApiType } from "@swapkit/toolbox-evm";
-import type { BlockchairApiType } from "@swapkit/toolbox-utxo";
+import type { CovalentApiType, EthplorerApiType } from "../../../../toolboxes/evm/src/index";
+import type { BlockchairApiType } from "../../../../toolboxes/utxo/src/index";
 
-import type { AlchemyApiType } from "@swapkit/toolbox-evm/src/api/alchemyApi";
+import type { AlchemyApiType } from "../../../../toolboxes/evm/src/api/alchemyApi";
 import type { AssetValue } from "../modules/assetValue";
 import type { Chain, CosmosChain, UTXOChain } from "./chains";
 

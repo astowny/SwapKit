@@ -1,20 +1,29 @@
 [
   {
-    "timestamp": "2025-04-22T04:31:07.195Z",
+    "timestamp": "2025-04-25T12:05:07.143Z",
     "url": "https://api.swapkit.dev/quote",
     "method": "POST",
-    "durationMs": 14907.464039999999,
-    "error": "undefined is not an object (evaluating 'C.error')",
+    "durationMs": 1459.7693590000126,
     "requestPayload": {
-      "sellAsset": "BSC.USDT-0x55d398326f99059ff775485246999027b3197955",
+      "sellAsset": "BTC.BTC",
       "buyAsset": "ETH.ETH",
-      "sellAmount": "0.005",
-      "sourceAddress": "0x33C6B77a63FC2ad01c5D4ff1B4e1E1473D467E76",
-      "destinationAddress": "0x33C6B77a63FC2ad01c5D4ff1B4e1E1473D467E76",
+      "sellAmount": "0.0001721",
+      "sourceAddress": "bc1qwsert5y2vpy4y6ffmsv9j27xxyarrs62axsm9u",
+      "destinationAddress": "0x1B4B81D4f0C9cF3D14f0d4cdc21079Bfa0a89Ad0",
       "slippage": 3,
       "includeTx": true,
       "allowSmartContractSender": true,
       "allowSmartContractReceiver": true
+    }
+  },
+  {
+    "timestamp": "2025-04-25T12:05:17.629Z",
+    "url": "https://api.swapkit.dev/tracker/undefined",
+    "method": "GET",
+    "durationMs": 2100.369888999994,
+    "requestPayload": {
+      "chainId": "thorchain-1",
+      "hash": "ab511e0791ad5e73cc3531e85e2e2d51d3c397cb8e7f53eb5148977d95379614"
     }
   }
 ]

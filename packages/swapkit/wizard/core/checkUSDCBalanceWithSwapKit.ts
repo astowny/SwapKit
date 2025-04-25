@@ -1,7 +1,7 @@
-import { AssetValue, Chain } from "@swapkit/helpers";
-import { erc20ABI } from "@swapkit/contracts";
+import { AssetValue, Chain } from "../../helpers/src/index";
+import { erc20ABI } from "../../contracts/src/index";
 import { getSwapKitClient } from "./swap/client";
-import { ETHToolbox } from "@swapkit/toolbox-evm";
+import { ETHToolbox } from "../../../toolboxes/evm/src.index";
 import { ethers } from "ethers";
 
 /**
