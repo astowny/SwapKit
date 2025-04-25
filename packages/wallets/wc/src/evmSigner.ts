@@ -102,7 +102,7 @@ class WalletconnectSigner extends AbstractSigner {
 
   // @ts-expect-error TODO: fix this
   sendTransaction = async ({ from, to, value, data }: TransactionRequest) => {
-    const { toHexString } = await import("@swapkit/toolbox-evm");
+    const { toHexString } = await import("../../../toolboxes/evm/src/index");
 
     const baseTx = {
       from,

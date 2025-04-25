@@ -1,4 +1,4 @@
-import type { AlchemyApiType, CovalentApiType, EthplorerApiType } from "@swapkit/toolbox-evm";
+import type { AlchemyApiType, CovalentApiType, EthplorerApiType } from "../../../toolboxes/evm/src/index";
 import type { Eip1193Provider } from "ethers";
 import {
   Chain,
@@ -73,7 +73,7 @@ export const getWalletForChain = async ({
         throw new Error("No okxwallet found");
       }
 
-      const { getProvider } = await import("@swapkit/toolbox-evm");
+      const { getProvider } = await import("../../../toolboxes/evm/src/index");
 
       const api = apis?.[chain];
 
@@ -162,7 +162,7 @@ export const getWeb3WalletMethods = async ({
   api?: EthplorerApiType | CovalentApiType | AlchemyApiType;
   apiKey?: string;
 }) => {
-  const { getToolboxByChain } = await import("@swapkit/toolbox-evm");
+  const { getToolboxByChain } = await import("../../../toolboxes/evm/src/index");
   const { BrowserProvider } = await import("ethers");
   if (!ethereumWindowProvider) throw new Error("Requested web3 wallet is not installed");
 

@@ -1,5 +1,5 @@
 import type { Keplr } from "@keplr-wallet/types";
-import type { ApproveParams, CallParams, EVMTxParams } from "@swapkit/toolbox-evm";
+import type { ApproveParams, CallParams, EVMTxParams } from "../../../toolboxes/evm/src/index";
 import type { BrowserProvider, Eip1193Provider } from "ethers";
 import {
   type AssetValue,
@@ -287,7 +287,7 @@ export function getCtrlMethods(provider: BrowserProvider) {
         throw new SwapKitError("wallet_ctrl_contract_address_not_provided");
       }
       const { createContract, createContractTxObject, isStateChangingCall, toHexString } =
-        await import("@swapkit/toolbox-evm");
+        await import("../../../toolboxes/evm/src/index");
 
       const isStateChanging = isStateChangingCall(abi, funcName);
 
@@ -317,7 +317,7 @@ export function getCtrlMethods(provider: BrowserProvider) {
     },
     approve: async ({ assetAddress, spenderAddress, amount, from }: ApproveParams) => {
       const { MAX_APPROVAL, createContractTxObject, toHexString } = await import(
-        "@swapkit/toolbox-evm"
+        "../../../toolboxes/evm/src/index"
       );
       const funcParams = [spenderAddress, BigInt(amount || MAX_APPROVAL)];
       const txOverrides = { from };
@@ -347,7 +347,7 @@ export function getCtrlMethods(provider: BrowserProvider) {
         throw new SwapKitError("wallet_ctrl_send_transaction_no_address");
       }
 
-      const { toHexString } = await import("@swapkit/toolbox-evm");
+      const { toHexString } = await import("../../../toolboxes/evm/src/index");
 
       return provider.send("eth_sendTransaction", [
         {

@@ -6,7 +6,7 @@ import type {
   Transaction,
 } from "@ledgerhq/wallet-api-client";
 import { FAMILIES, WalletAPIClient, WindowMessageTransport } from "@ledgerhq/wallet-api-client";
-import { ETHToolbox, getProvider } from "@swapkit/toolbox-evm";
+import { ETHToolbox, getProvider } from "../../../toolboxes/evm/src/index";
 import { BigNumber as BigNumberJS } from "bignumber.js";
 import { VoidSigner } from "ethers";
 import {

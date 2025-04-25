@@ -1,5 +1,5 @@
 import type { Wallet } from "@passkeys/core";
-import { type NonETHToolbox, getProvider, getToolboxByChain } from "@swapkit/toolbox-evm";
+import { type NonETHToolbox, getProvider, getToolboxByChain } from "../../../toolboxes/evm/src/index";
 import { BrowserProvider, type Eip1193Provider } from "ethers";
 import {
   AddressPurpose,

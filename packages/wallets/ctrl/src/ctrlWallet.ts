@@ -132,7 +132,7 @@ async function getWalletMethodsForChain({
       const { prepareNetworkSwitch, switchEVMWalletNetwork } = await import(
         "../../../swapkit/helpers/src/index"
       );
-      const { getToolboxByChain } = await import("@swapkit/toolbox-evm");
+      const { getToolboxByChain } = await import("../../../toolboxes/evm/src/index");
       const { BrowserProvider } = await import("ethers");
       const ethereumWindowProvider = getCtrlProvider(chain);
 

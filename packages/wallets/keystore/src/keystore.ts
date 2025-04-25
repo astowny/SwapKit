@@ -80,6 +80,7 @@ const getWalletMethodsForChain = async ({
         ethApiKey: ethplorerApiKey,
       });
       const provider = getProvider(chain, rpcUrl);
+      console.log('provider in the get wallet method for chain', provider )
       const wallet = HDNodeWallet.fromPhrase(phrase).connect(provider);
       const params = { api, apiKey, provider, signer: wallet };
 

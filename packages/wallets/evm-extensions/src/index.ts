@@ -1,4 +1,3 @@
-import type { NonETHToolbox } from "@swapkit/toolbox-evm";
 import type { BrowserProvider, Eip1193Provider } from "ethers";
 import {
   Chain,
@@ -15,6 +14,7 @@ import {
   setRequestClientConfig,
   switchEVMWalletNetwork,
 } from "../../../swapkit/helpers/src/index";
+import type { NonETHToolbox } from "../../../toolboxes/evm/src/index";
 
 declare const window: {
   ethereum: EthereumWindowProvider;
@@ -67,7 +67,7 @@ export const getWeb3WalletMethods = async ({
   apis: ChainApis;
 }) => {
   if (!ethereumWindowProvider) throw new Error("Requested web3 wallet is not installed");
-  const { getToolboxByChain } = await import("@swapkit/toolbox-evm");
+  const { getToolboxByChain } = await import("../../../toolboxes/evm/src/index");
 
   const api = apis?.[chain];
 
@@ -122,7 +122,7 @@ function connectEVMWallet({
     const supportedChains = filterSupportedChains(chains, EVMChains, walletType);
 
     const promises = supportedChains.map(async (chain) => {
-      const { getProvider } = await import("@swapkit/toolbox-evm");
+      const { getProvider } = await import("../../../toolboxes/evm/src/index");
       const { BrowserProvider } = await import("ethers");
 
       if (walletType === WalletOption.EIP6963) {

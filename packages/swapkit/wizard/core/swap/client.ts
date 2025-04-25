@@ -81,10 +81,10 @@ const swapKitParams = {
     ethplorerApiKey: process.env.ETHPLORER_API_KEY 
   },
   // URLs RPC personnalisées (optionnel)
-  rpcUrls: {
-    // Exemple: 'ETH': 'https://mainnet.infura.io/v3/your-api-key'
-    // 'ETH': 'https://mainnet.infura.io/v3/' + process.env.INFURA_API_KEY
-  },
+  // rpcUrls: {
+  //   // Exemple: 'ETH': 'https://mainnet.infura.io/v3/your-api-key'
+  //   // 'ETH': 'https://mainnet.infura.io/v3/' + process.env.INFURA_API_KEY
+  // },
   // Tous les plugins disponibles
   plugins: {
     ...ThorchainPlugin,

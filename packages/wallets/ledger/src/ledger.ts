@@ -117,7 +117,7 @@ const getToolbox = async ({
         nonEthApiKey: covalentApiKey,
         ethApiKey: ethplorerApiKey,
       });
-      const { getToolboxByChain, getProvider } = await import("@swapkit/toolbox-evm");
+      const { getToolboxByChain, getProvider } = await import("../../../toolboxes/evm/src/index");
       const signer = await getLedgerClient({ chain, derivationPath });
       const address = await getLedgerAddress({ chain, ledgerClient: signer });
       const provider = getProvider(chain, rpcUrl);

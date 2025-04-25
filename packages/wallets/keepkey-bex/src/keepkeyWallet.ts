@@ -1,4 +1,4 @@
-import type { NonETHToolbox } from "@swapkit/toolbox-evm";
+import type { NonETHToolbox } from "../../../toolboxes/evm/src/index";
 import type { Eip1193Provider } from "ethers";
 import {
   AssetValue,
@@ -122,7 +122,7 @@ async function getWalletMethodsForChain({
         "../../../swapkit/helpers/src/index"
       );
       const { getToolboxByChain, getBalance, covalentApi, ethplorerApi, getProvider } =
-        await import("@swapkit/toolbox-evm");
+        await import("../../../toolboxes/evm/src/index");
       const { BrowserProvider } = await import("ethers");
       const ethereumWindowProvider = getKEEPKEYProvider(chain) as Eip1193Provider;
 
