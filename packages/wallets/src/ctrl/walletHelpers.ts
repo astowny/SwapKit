@@ -8,6 +8,7 @@ import {
   type FeeOption,
   SwapKitError,
   WalletOption,
+  providerRequest,
 } from "@swapkit/helpers";
 import { erc20ABI } from "@swapkit/helpers/contracts";
 import type { ApproveParams, CallParams, EVMTxParams } from "@swapkit/toolboxes/evm";
@@ -120,7 +121,13 @@ export async function getCtrlAddress(chain: Chain) {
   }
 
   if (EVMChains.includes(chain as EVMChain)) {
-    const [response] = await eipProvider.request({ method: "eth_requestAccounts", params: [] });
+    const { BrowserProvider } = await import("ethers");
+    const provider = new BrowserProvider(eipProvider, "any");
+    const [response] = await providerRequest({
+      provider,
+      method: "eth_requestAccounts",
+      params: [],
+    });
 
     return response;
   }
@@ -132,13 +139,22 @@ export async function getCtrlAddress(chain: Chain) {
     return accounts.publicKey.toString();
   }
 
-  return new Promise((resolve, reject) =>
-    eipProvider.request(
-      { method: "request_accounts", params: [] },
-      // @ts-expect-error
-      (error: any, [response]: string[]) => (error ? reject(error) : resolve(response)),
-    ),
-  );
+  const { BrowserProvider } = await import("ethers");
+  const provider = new BrowserProvider(eipProvider, "any");
+
+  try {
+    const [response] = await providerRequest({
+      provider,
+      method: "eth_requestAccounts",
+      params: [],
+    });
+    return response;
+  } catch (_error) {
+    throw new SwapKitError({
+      errorKey: "wallet_provider_not_found",
+      info: { wallet: WalletOption.CTRL, chain },
+    });
+  }
 }
 
 export async function walletTransfer(

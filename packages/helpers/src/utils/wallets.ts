@@ -247,7 +247,7 @@ export function createWallet<
   };
 }
 
-function providerRequest({
+export function providerRequest({
   provider,
   params,
   method,
