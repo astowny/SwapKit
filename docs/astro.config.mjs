@@ -78,16 +78,20 @@ export default defineConfig({
             },
           ],
         },
-        { label: "Others", autogenerate: { directory: "others" } },
-        ...(process.env.REFERENCES
-          ? [
-              {
-                label: "References",
-                collapsed: true,
-                items: [{ label: "@swapkit", items: docsSidebarItems }],
-              },
-            ]
-          : []),
+        { label: "Actions", collapsed: true, autogenerate: { directory: "guides/actions" } },
+        {
+          label: "Integrations",
+          collapsed: true,
+          autogenerate: { directory: "guides/integrations" },
+        },
+        { label: "Others", autogenerate: { directory: "others" }, collapsed: true },
+        {
+          label: "References",
+          collapsed: true,
+          items: [
+            ...(process.env.REFERENCES ? [{ label: "@swapkit", items: docsSidebarItems }] : []),
+          ],
+        },
       ],
     }),
   ],

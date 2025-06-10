@@ -3,7 +3,6 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
   TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
-  IS_RELEASE: ${{ contains(github.ref_name, 'develop') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'nightly') }}
 
 on:
   workflow_dispatch:
@@ -38,7 +37,7 @@ jobs:
         run: bun test:ci
 
   publish:
-    if: ${{ env.IS_RELEASE }}
+    if: ${{ contains(github.ref_name, 'develop') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'nightly') }}
     needs: [build-lint-test]
     runs-on: ubuntu-latest
     steps:
@@ -111,7 +110,7 @@ jobs:
 
   build-docs:
     runs-on: ubuntu-latest
-    if: ${{ env.IS_RELEASE }}
+    if: ${{ contains(github.ref_name, 'develop') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'nightly') }}
     needs: [build-lint-test]
     permissions:
       contents: read
