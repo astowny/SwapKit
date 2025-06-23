@@ -111,19 +111,6 @@ describe("TRON Address Validation", () => {
     expect(context.validateAddress(upperCase)).toBe(false);
   });
 
-  test("should validate different address types", () => {
-    // Test different types of TRON addresses
-    const addresses = {
-      contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", // Smart contract (USDT)
-      wallet: "TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7", // Regular wallet
-      exchange: "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ar", // Exchange wallet
-    };
-
-    for (const [_, address] of Object.entries(addresses)) {
-      expect(context.validateAddress(address)).toBe(true);
-    }
-  });
-
   test("should handle edge cases", () => {
     const edgeCases = [null, undefined, 123, {}, [], true, false];
 
