@@ -1,4 +1,3 @@
-import { SKConfig } from "./swapKitConfig";
 import { SwapKitError } from "./swapKitError";
 
 type Options = RequestInit & {
@@ -10,6 +9,7 @@ type Options = RequestInit & {
   onError?: (error: any) => any;
   onSuccess?: (response: any) => any;
   searchParams?: Record<string, string>;
+  getDynamicHeader?: () => Record<string, string> | {};
 };
 
 export const RequestClient = {
@@ -31,7 +31,7 @@ function fetchWithConfig(method: "GET" | "POST", extendOptions: Options = {}) {
 
     try {
       const requestUrl = buildUrl(url, searchParams);
-      const headers = buildHeaders(isJson, headersOptions);
+      const headers = buildHeaders(isJson, { ...headersOptions, ...options.getDynamicHeader?.() });
 
       const response = await fetch(requestUrl, { ...options, method, body: bodyToSend, headers });
 
@@ -57,12 +57,9 @@ function fetchWithConfig(method: "GET" | "POST", extendOptions: Options = {}) {
 }
 
 function buildHeaders(isJson: boolean, headersOptions?: HeadersInit) {
-  const { swapKit } = SKConfig.get("apiKeys");
-
   return {
     ...headersOptions,
     ...(isJson ? { "Content-Type": "application/json" } : {}),
-    ...(swapKit ? { "x-api-key": swapKit } : {}),
   };
 }
 

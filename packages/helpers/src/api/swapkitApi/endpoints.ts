@@ -28,12 +28,19 @@ import {
   type TrackerResponse,
 } from "./types";
 
+const SKRequestClient = RequestClient.extend({
+  getDynamicHeader: () => {
+    const { swapKit } = SKConfig.get("apiKeys");
+    return swapKit ? { "x-api-key": swapKit } : {};
+  },
+});
+
 export function getTrackerDetails(json: TrackerParams) {
-  return RequestClient.post<TrackerResponse>(getApiUrl("/track"), { json });
+  return SKRequestClient.post<TrackerResponse>(getApiUrl("/track"), { json });
 }
 
 export async function getSwapQuote(json: QuoteRequest) {
-  const response = await RequestClient.post<QuoteResponse>(getApiUrl("/quote"), { json });
+  const response = await SKRequestClient.post<QuoteResponse>(getApiUrl("/quote"), { json });
 
   if (response.error) {
     throw new SwapKitError("api_v2_server_error", { message: response.error });
@@ -59,7 +66,7 @@ export async function getChainBalance<T extends Chain>({
   scamFilter = true,
 }: { chain: T; address: string; scamFilter?: boolean }) {
   const url = getApiUrl(`/balance?chain=${chain}&address=${address}`);
-  const balanceResponse = await RequestClient.get<BalanceResponse>(url);
+  const balanceResponse = await SKRequestClient.get<BalanceResponse>(url);
   const balances = Array.isArray(balanceResponse) ? balanceResponse : [];
 
   return scamFilter ? filterAssets(balances) : balances;
@@ -67,17 +74,17 @@ export async function getChainBalance<T extends Chain>({
 
 export function getTokenListProviders() {
   const url = getApiUrl("/providers");
-  return RequestClient.get<TokenListProvidersResponse>(url);
+  return SKRequestClient.get<TokenListProvidersResponse>(url);
 }
 
 export function getTokenList(provider: ProviderName) {
   const url = getApiUrl(`/tokens?provider=${provider}`);
-  return RequestClient.get<TokensResponseV2>(url);
+  return SKRequestClient.get<TokensResponseV2>(url);
 }
 
 export async function getPrice(body: PriceRequest) {
   const url = getApiUrl("/price");
-  const response = await RequestClient.post<PriceResponse>(url, {
+  const response = await SKRequestClient.post<PriceResponse>(url, {
     json: body,
   });
 
@@ -96,7 +103,7 @@ export async function getPrice(body: PriceRequest) {
 
 export async function getGasRate() {
   const url = getApiUrl("/gas");
-  const response = await RequestClient.get<GasResponse>(url);
+  const response = await SKRequestClient.get<GasResponse>(url);
 
   try {
     const parsedResponse = GasResponseSchema.safeParse(response);
@@ -119,7 +126,7 @@ export async function getChainflipDepositChannel(body: BrokerDepositChannelParam
   }
   const url = SKConfig.get("integrations").chainflip?.brokerUrl || getApiUrl("/channel");
 
-  const response = await RequestClient.post<DepositChannelResponse>(url, { json: body });
+  const response = await SKRequestClient.post<DepositChannelResponse>(url, { json: body });
 
   try {
     const parsedResponse = DepositChannelResponseSchema.safeParse(response);
