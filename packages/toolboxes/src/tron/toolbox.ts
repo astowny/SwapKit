@@ -11,6 +11,7 @@ import {
 import { P, match } from "ts-pattern";
 
 import { trc20ABI } from "./helpers/trc20.abi.js";
+import { fetchAccountFromTronGrid, parseTronGridBalances } from "./helpers/trongrid.js";
 import type {
   TronCreateTransactionParams,
   TronSignedTransaction,
@@ -21,6 +22,15 @@ import type {
 } from "./types.js";
 
 import { TronWeb } from "tronweb";
+
+// Constants for TRON resource calculation
+const TRX_TRANSFER_BANDWIDTH = 268; // Bandwidth consumed by a TRX transfer
+const TRC20_TRANSFER_ENERGY = 13000; // Average energy consumed by TRC20 transfer
+const TRC20_TRANSFER_BANDWIDTH = 345; // Bandwidth consumed by TRC20 transfer
+
+// Known TRON tokens
+const TRON_USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const TRON_USDT_DECIMALS = 6;
 
 export async function getTronAddressValidator() {
   return (address: string) => {
@@ -131,11 +141,6 @@ export const createTronToolbox = async (options: TronToolboxOptions = {}) => {
     return 100_000_000; // 100 TRX in SUN
   };
 
-  // Constants for TRON resource calculation
-  const TRX_TRANSFER_BANDWIDTH = 268; // Bandwidth consumed by a TRX transfer
-  const TRC20_TRANSFER_ENERGY = 13000; // Average energy consumed by TRC20 transfer
-  const TRC20_TRANSFER_BANDWIDTH = 345; // Bandwidth consumed by TRC20 transfer
-
   /**
    * Get current chain parameters including resource prices
    */
@@ -202,50 +207,77 @@ export const createTronToolbox = async (options: TronToolboxOptions = {}) => {
     }
   };
 
-  const getBalance = async (address: string, scamFilter = true) => {
-    const { getBalance: getBalanceFromApi } = await import("../utils.js");
-
+  /**
+   * Get USDT balance directly from the contract
+   */
+  const getUSDTBalance = async (address: string) => {
     try {
-      // Use SwapKit API for comprehensive balance fetching (includes TRX + TRC20 tokens)
-      const apiBalances = await getBalanceFromApi(Chain.Tron)(address, scamFilter);
+      const contract = tronWeb.contract(trc20ABI, TRON_USDT_CONTRACT);
 
-      // If API returns balances, use those
-      if (apiBalances.length > 0) {
-        return apiBalances;
+      if (!contract.methods?.balanceOf) {
+        return;
       }
 
-      // Fallback to on-chain TRX balance if API fails or returns empty
-      const trxBalanceInSun = await tronWeb.trx.getBalance(address);
-      return [
-        AssetValue.from({
-          chain: Chain.Tron,
-          value: trxBalanceInSun,
-          fromBaseDecimal: 6, // TRX has 6 decimals
-        }),
-      ];
+      const balance = await contract.methods.balanceOf(address).call();
+
+      // Check if balance is 0 or invalid
+      if (!balance || balance.toString() === "0") {
+        return;
+      }
+
+      return AssetValue.from({
+        asset: `TRON.USDT-${TRON_USDT_CONTRACT}`,
+        value: balance.toString(),
+        fromBaseDecimal: TRON_USDT_DECIMALS,
+      });
     } catch (error) {
       warnOnce(
         true,
-        `Failed to get Tron balance for ${address}: ${error instanceof Error ? error.message : error}`,
+        `Failed to get USDT balance for ${address}: ${error instanceof Error ? error.message : error}`,
+      );
+      return;
+    }
+  };
+
+  const getBalance = async (address: string, _scamFilter = true) => {
+    const fallbackBalance = [
+      AssetValue.from({
+        chain: Chain.Tron,
+      }),
+    ];
+    // Try primary source (TronGrid or SwapKit API)
+    try {
+      //   if (useTronGrid) {
+      const accountData = await fetchAccountFromTronGrid(address);
+      if (accountData?.data?.[0]) {
+        const balances = await parseTronGridBalances(accountData.data[0]);
+        return balances.length > 0 ? balances : fallbackBalance;
+      }
+      return fallbackBalance;
+      //   }
+
+      //   const { getBalance: getBalanceFromApi } = await import("../utils.js");
+      //   const apiBalances = await getBalanceFromApi(Chain.Tron)(address, scamFilter);
+      //   return apiBalances.length > 0 ? apiBalances : fallbackBalance;
+    } catch (error) {
+      warnOnce(
+        true,
+        `Tron API getBalance failed: ${error instanceof Error ? error.message : error}`,
       );
 
-      // Final fallback: try to get just the native TRX balance
-      try {
-        const trxBalanceInSun = await tronWeb.trx.getBalance(address);
-        return [
-          AssetValue.from({
-            chain: Chain.Tron,
-            value: trxBalanceInSun,
-            fromBaseDecimal: 6,
-          }),
-        ];
-      } catch (fallbackError) {
-        warnOnce(
-          true,
-          `Failed to get native TRX balance for ${address}: ${fallbackError instanceof Error ? fallbackError.message : fallbackError}`,
-        );
-        return [];
-      }
+      const trxBalanceInSun = await tronWeb.trx.getBalance(address);
+      const usdtBalance = await getUSDTBalance(address);
+
+      const balances = [
+        AssetValue.from({
+          chain: Chain.Tron,
+          value: trxBalanceInSun,
+          fromBaseDecimal: 6,
+        }),
+        ...(usdtBalance ? [usdtBalance] : []),
+      ];
+
+      return balances;
     }
   };
 
