@@ -11,7 +11,7 @@ import {
 import { P, match } from "ts-pattern";
 
 import { trc20ABI } from "./helpers/trc20.abi.js";
-import { fetchAccountFromTronGrid, parseTronGridBalances } from "./helpers/trongrid.js";
+import { fetchAccountFromTronGrid } from "./helpers/trongrid.js";
 import type {
   TronCreateTransactionParams,
   TronSignedTransaction,
@@ -30,7 +30,6 @@ const TRC20_TRANSFER_BANDWIDTH = 345; // Bandwidth consumed by TRC20 transfer
 
 // Known TRON tokens
 const TRON_USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-const TRON_USDT_DECIMALS = 6;
 
 export async function getTronAddressValidator() {
   return (address: string) => {
@@ -208,34 +207,54 @@ export const createTronToolbox = async (options: TronToolboxOptions = {}) => {
   };
 
   /**
-   * Get USDT balance directly from the contract
+   * Get token balance and info directly from contract
    */
-  const getUSDTBalance = async (address: string) => {
+  const fetchTokenBalance = async (address: string, contractAddress: string) => {
     try {
-      const contract = tronWeb.contract(trc20ABI, TRON_USDT_CONTRACT);
+      const contract = tronWeb.contract(trc20ABI, contractAddress);
 
       if (!contract.methods?.balanceOf) {
-        return;
+        return 0n;
       }
 
-      const balance = await contract.methods.balanceOf(address).call();
+      const balance = (await contract.methods.balanceOf(address).call())[0] as string;
 
-      // Check if balance is 0 or invalid
-      if (!balance || balance.toString() === "0") {
-        return;
-      }
+      return BigInt(balance || 0); // Convert to BigInt for consistency
+    } catch (err) {
+      console.warn(`balanceOf() failed for ${contractAddress}:`, err);
+      return 0n;
+    }
+  };
 
-      return AssetValue.from({
-        asset: `TRON.USDT-${TRON_USDT_CONTRACT}`,
-        value: balance.toString(),
-        fromBaseDecimal: TRON_USDT_DECIMALS,
-      });
+  /**
+   * Get token balance and info directly from contract
+   */
+  const fetchTokenMetadata = async (contractAddress: string, address: string) => {
+    try {
+      tronWeb.setAddress(address); // Set address for contract calls
+      const contract = tronWeb.contract(trc20ABI, contractAddress);
+
+      const [symbolRaw, decimalsRaw] = await Promise.all([
+        contract
+          .symbol()
+          .call()
+          .catch(() => "UNKNOWN"),
+        contract
+          .decimals()
+          .call()
+          .catch(() => "18"),
+      ]);
+
+      return {
+        symbol: symbolRaw ?? "UNKNOWN",
+        decimals: Number(decimalsRaw ?? 18),
+      };
     } catch (error) {
       warnOnce(
         true,
-        `Failed to get USDT balance for ${address}: ${error instanceof Error ? error.message : error}`,
+        `Failed to get token balance for ${contractAddress}: ${error instanceof Error ? error.message : error}`,
       );
-      return;
+      return null;
     }
   };
 
@@ -245,37 +264,74 @@ export const createTronToolbox = async (options: TronToolboxOptions = {}) => {
         chain: Chain.Tron,
       }),
     ];
-    // Try primary source (TronGrid or SwapKit API)
+    // Try primary source (TronGrid)
     try {
-      //   if (useTronGrid) {
       const accountData = await fetchAccountFromTronGrid(address);
-      if (accountData?.data?.[0]) {
-        const balances = await parseTronGridBalances(accountData.data[0]);
-        return balances.length > 0 ? balances : fallbackBalance;
+      if (accountData) {
+        const balances: AssetValue[] = [];
+
+        // Add TRX balance
+        balances.push(
+          AssetValue.from({
+            chain: Chain.Tron,
+            value: accountData.balance,
+            fromBaseDecimal: 6,
+          }),
+        );
+
+        // Add TRC20 balances
+
+        for (const token of accountData.trc20) {
+          const [contractAddress, balance] = Object.entries(token)[0] || [];
+
+          if (!(contractAddress && balance)) continue;
+
+          const tokenMetaData = await fetchTokenMetadata(contractAddress, address);
+
+          if (!tokenMetaData) continue;
+
+          balances.push(
+            AssetValue.from({
+              asset: `TRX.${tokenMetaData.symbol}-${contractAddress}`,
+              value: BigInt(balance || 0),
+              fromBaseDecimal: tokenMetaData.decimals,
+            }),
+          );
+        }
+
+        return balances;
       }
       return fallbackBalance;
-      //   }
-
-      //   const { getBalance: getBalanceFromApi } = await import("../utils.js");
-      //   const apiBalances = await getBalanceFromApi(Chain.Tron)(address, scamFilter);
-      //   return apiBalances.length > 0 ? apiBalances : fallbackBalance;
     } catch (error) {
       warnOnce(
         true,
         `Tron API getBalance failed: ${error instanceof Error ? error.message : error}`,
       );
 
-      const trxBalanceInSun = await tronWeb.trx.getBalance(address);
-      const usdtBalance = await getUSDTBalance(address);
+      // Fallback: get TRX and USDT directly
+      const balances: AssetValue[] = [];
 
-      const balances = [
-        AssetValue.from({
-          chain: Chain.Tron,
-          value: trxBalanceInSun,
-          fromBaseDecimal: 6,
-        }),
-        ...(usdtBalance ? [usdtBalance] : []),
-      ];
+      const trxBalanceInSun = await tronWeb.trx.getBalance(address);
+      if (trxBalanceInSun && Number(trxBalanceInSun) > 0) {
+        balances.push(
+          AssetValue.from({
+            chain: Chain.Tron,
+            value: trxBalanceInSun,
+            fromBaseDecimal: 6,
+          }),
+        );
+      }
+
+      const usdtBalance = await fetchTokenBalance(address, TRON_USDT_CONTRACT);
+      if (usdtBalance) {
+        balances.push(
+          AssetValue.from({
+            asset: `TRX.USDT-${TRON_USDT_CONTRACT}`,
+            value: usdtBalance,
+            fromBaseDecimal: 6,
+          }),
+        );
+      }
 
       return balances;
     }
