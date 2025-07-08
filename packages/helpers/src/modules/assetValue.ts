@@ -141,7 +141,7 @@ export class AssetValue extends BigIntArithmetics {
 
     const { chain, isSynthetic, isTradeAsset } = getAssetInfo(unsafeIdentifier);
     const token = staticTokensMap.get(
-      chain === Chain.Solana
+      CASE_SENSITIVE_CHAINS.includes(chain)
         ? (unsafeIdentifier as TokenNames)
         : (unsafeIdentifier.toUpperCase() as TokenNames),
     );
@@ -182,7 +182,7 @@ or by passing asyncTokenLookup: true to the from() function, which will make it 
     for (const { tokens } of Object.values(lists)) {
       for (const { identifier, chain, ...rest } of tokens) {
         const tokenKey = (
-          chain === Chain.Solana ? identifier : identifier.toUpperCase()
+          CASE_SENSITIVE_CHAINS.includes(chain as Chain) ? identifier : identifier.toUpperCase()
         ) as TokenNames;
         const tokenDecimal = "decimals" in rest ? rest.decimals : BaseDecimal[chain as Chain];
 
@@ -205,7 +205,9 @@ or by passing asyncTokenLookup: true to the from() function, which will make it 
     staticTokensMap.clear();
     for (const [key, value] of tokenMap.entries()) {
       const tokenKey = (
-        value.chain === Chain.Solana ? value.identifier : value.identifier.toUpperCase()
+        CASE_SENSITIVE_CHAINS.includes(value.chain)
+          ? value.identifier
+          : value.identifier.toUpperCase()
       ) as TokenNames;
       const tokenDecimal = "decimals" in value ? value.decimals : value.decimal;
       staticTokensMap.set(key, { ...value, decimal: tokenDecimal, identifier: tokenKey });
