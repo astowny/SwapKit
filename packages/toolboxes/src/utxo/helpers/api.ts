@@ -113,7 +113,7 @@ async function blockchairRequest<T>(url: string, apiKey?: string): Promise<T> {
   } catch (error) {
     if (!apiKey) throw error;
     const response = await RequestClient.get<BlockchairResponse<T>>(
-      `${url}${apiKey ? `&key=${apiKey}` : ""}`,
+      `${url}${apiKey ? `${url.includes("?") ? "&" : "?"}key=${apiKey}` : ""}`,
     );
 
     if (!response || response.context.code !== 200)
