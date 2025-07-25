@@ -32,7 +32,7 @@ export const NetworkDerivationPath: Record<Chain, DerivationPathArray> = {
   GNO: [44, 60, 0, 0, 0],
   KUJI: [44, 118, 0, 0, 0],
   LTC: [84, 2, 0, 0, 0],
-  MATIC: [44, 60, 0, 0, 0],
+  POL: [44, 60, 0, 0, 0],
   MAYA: [44, 931, 0, 0, 0],
   NEAR: [44, 397, 0, 0, 0],
   OP: [44, 60, 0, 0, 0],
