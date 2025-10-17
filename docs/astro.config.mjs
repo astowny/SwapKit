@@ -88,7 +88,7 @@ export default defineConfig({
     },
     syntaxHighlight: "shiki",
   },
-  site: process.env.REFERENCES ? "https://swapkit.github.io/SwapKit" : undefined,
+  site: process.env.REFERENCES ? "https://swapkit.github.io" : undefined,
 });
 
 function createDocs() {
