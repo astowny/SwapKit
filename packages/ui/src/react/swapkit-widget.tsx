@@ -6,16 +6,20 @@ import {
   ProviderName,
   type QuoteResponseRoute,
   SwapKitApi,
+  useSwapKitConfig,
   useSwapKitStore,
 } from "@swapkit/sdk";
 import { ArrowDownUpIcon, Loader2Icon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { match, P } from "ts-pattern";
 import { getStableConfigMemoKey } from "../utils";
 import { SwapInputWithChainSelector } from "./components/composable/swap-input-chain-selector";
+import { WalletConnectDialog } from "./components/dialogs/wallet-connect-dialog";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { Toaster, toast } from "./components/ui/sonner";
+import { useDebouncedEffect } from "./hooks/use-debounced-effect";
+import { ModalSpawner, showModal } from "./hooks/use-modal";
 import { useSwapKit } from "./swapkit-context";
 import type { SwapKitWidgetProps } from "./types";
 
@@ -28,33 +32,23 @@ export function SwapKitWidget({ config }: SwapKitWidgetProps) {
   const [routes, setRoutes] = useState<QuoteResponseRoute[]>([]);
   const cachedStableConfigMemoKey = useRef<string | null>(null);
 
+  const swapKitConfig = useSwapKitConfig();
   const { setConfig } = useSwapKitStore();
   const { swapKit, isWalletConnected } = useSwapKit();
 
   const stableConfigMemoKey = getStableConfigMemoKey(config);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger only on primitive values change, so we don't need widget users to remember about memoizing config objects
-  useEffect(() => {
-    const isConfigSame = cachedStableConfigMemoKey?.current === stableConfigMemoKey;
+  const updateEstimatedOutput = async () => {
+    const sourceAddress = swapKit?.getAddress?.(inputAsset?.split?.(".")?.[0] as Chain);
+    const destinationAddress = swapKit?.getAddress?.(outputAsset?.split?.(".")?.[0] as Chain);
 
-    if (swapKit && isConfigSame) return;
-
-    void setConfig(config ?? {});
-
-    cachedStableConfigMemoKey.current = stableConfigMemoKey;
-  }, [swapKit, stableConfigMemoKey]);
-
-  const updateEstimatedOutput = useCallback(async () => {
-    if (!(inputAsset && outputAsset && amount && swapKit)) {
+    if (!(inputAsset && outputAsset && amount && swapKit && sourceAddress && destinationAddress)) {
       setEstimatedOutput(undefined);
       setRoutes([]);
       return;
     }
 
     try {
-      const sourceAddress = swapKit.getAddress(inputAsset.split(".")[0] as Chain);
-      const destinationAddress = swapKit.getAddress(outputAsset.split(".")[0] as Chain);
-
       const quote = await SwapKitApi.getSwapQuote({
         buyAsset: outputAsset,
         destinationAddress,
@@ -75,11 +69,22 @@ export function SwapKitWidget({ config }: SwapKitWidgetProps) {
       setEstimatedOutput(undefined);
       setRoutes([]);
     }
-  }, [inputAsset, outputAsset, amount, swapKit]);
+  };
 
+  useDebouncedEffect(updateEstimatedOutput, [inputAsset, outputAsset, amount, swapKit, swapKitConfig], 1000);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger only on primitive values change, so we don't need widget users to remember about memoizing config objects
   useEffect(() => {
-    void updateEstimatedOutput();
-  }, [updateEstimatedOutput]);
+    if (!config) return;
+
+    const isConfigSame = cachedStableConfigMemoKey?.current === stableConfigMemoKey;
+
+    if (swapKit && isConfigSame) return;
+
+    setConfig(config);
+
+    cachedStableConfigMemoKey.current = stableConfigMemoKey;
+  }, [swapKit, stableConfigMemoKey, setConfig]);
 
   const handleSwap = async (route: QuoteResponseRoute) => {
     if (!swapKit) return;
@@ -130,6 +135,11 @@ export function SwapKitWidget({ config }: SwapKitWidgetProps) {
   };
 
   const handleSubmitButtonClick = async () => {
+    if (!isWalletConnected) {
+      void showModal(<WalletConnectDialog />);
+      return;
+    }
+
     if (!(routes?.length && inputAsset)) return;
 
     try {
@@ -208,7 +218,7 @@ export function SwapKitWidget({ config }: SwapKitWidgetProps) {
 
       <Button
         className="w-full"
-        disabled={!(inputAsset && outputAsset && amount) || isSwapping || !isWalletConnected}
+        disabled={!(inputAsset && outputAsset && amount) || isSwapping}
         onClick={handleSubmitButtonClick}
         size="xl"
         variant="primary">
@@ -216,6 +226,7 @@ export function SwapKitWidget({ config }: SwapKitWidgetProps) {
       </Button>
 
       <Toaster position="bottom-right" />
+      <ModalSpawner />
     </div>
   );
 }
