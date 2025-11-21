@@ -10,9 +10,10 @@ import {
   SwapKitError,
   updateDerivationPath,
 } from "@swapkit/helpers";
+
 import { accumulative, compileMemo, getUtxoApi, toCashAddress, toLegacyAddress } from "../helpers";
 import type { TargetOutput, UTXOBuildTxParams, UTXOTransferParams, UTXOType } from "../types";
-import type { UtxoToolboxParams } from "./index";
+import type { UtxoToolboxParams } from "./params";
 import { addressFromKeysGetter, createUTXOToolbox, getCreateKeysForPath } from "./utxo";
 import { bchValidateAddress, stripPrefix } from "./validators";
 

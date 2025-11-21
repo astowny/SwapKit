@@ -1,4 +1,4 @@
-import { WalletWidget } from "@passkeys/react";
+// import { WalletWidget } from "@passkeys/react";
 import { type AssetValue, Chain, SKConfig } from "@swapkit/core";
 import type { FullWallet } from "@swapkit/sdk";
 import { SwapKitWidget } from "@swapkit/ui/react";
@@ -36,7 +36,7 @@ const App = () => {
     {},
   );
 
-  const skClient = getSwapKitClient(keys);
+  const { skClient, config } = getSwapKitClient(keys);
 
   const toggleStagenet = useCallback(() => {
     setStagenet((v) => {
@@ -345,7 +345,7 @@ const App = () => {
 
       {showWidget ? (
         <div style={{ display: "flex", padding: 20 }}>
-          <SwapKitWidget apiKey={keys.swapKit} />
+          <SwapKitWidget config={config} />
         </div>
       ) : (
         <div style={{ display: "flex", flex: 1, justifyContent: "flex-start", overflow: "hidden" }}>
@@ -429,7 +429,7 @@ const App = () => {
               padding: 12,
               width: 700,
             }}>
-            <WalletWidget />
+            {/* <WalletWidget /> */}
 
             {skClient && wallet && (
               <>

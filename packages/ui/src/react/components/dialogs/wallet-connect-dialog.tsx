@@ -1,38 +1,27 @@
 "use client";
 
 import { Chain, EVMChains, WalletOption } from "@swapkit/helpers";
-import { ChainIcon, WalletIcon } from "@swapkit/ui/react";
 import { BITGET_SUPPORTED_CHAINS } from "@swapkit/wallets/bitget";
 import { PHANTOM_SUPPORTED_CHAINS } from "@swapkit/wallets/phantom";
-import { X } from "lucide-react";
-import { useState } from "react";
+import { SearchIcon, WalletMinimalIcon } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useModal } from "../../hooks/use-modal";
+import { match, P } from "ts-pattern";
+import { showModal, useModal } from "../../hooks/use-modal";
 import { useSwapKit } from "../../swapkit-context";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-
-const CHAIN_GROUPS: Record<string, Chain[]> = {
-  "Cosmos Chains": [Chain.Cosmos, Chain.THORChain, Chain.Maya, Chain.Kujira],
-  "EVM Chains": [
-    Chain.Ethereum,
-    Chain.BinanceSmartChain,
-    Chain.Avalanche,
-    Chain.Polygon,
-    Chain.Arbitrum,
-    Chain.Optimism,
-    Chain.Base,
-  ],
-  "Other Chains": [Chain.Solana, Chain.Polkadot, Chain.Radix, Chain.Chainflip],
-  "UTXO Chains": [Chain.Bitcoin, Chain.BitcoinCash, Chain.Litecoin, Chain.Dogecoin, Chain.Dash],
-};
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Input } from "../ui/input";
+import { SWAPKIT_WIDGET_TOASTER_ID } from "../ui/sonner";
+import { WalletIcon } from "../wallet-icon";
+import { WalletKeystoreConnectDialog } from "./wallet-keystore-connect-dialog";
 
 const WALLET_GROUPS = {
   "Browser Extensions": [
     WalletOption.METAMASK,
     WalletOption.PHANTOM,
     WalletOption.KEPLR,
-    WalletOption.EXODUS,
+    WalletOption.PASSKEYS,
     WalletOption.BRAVE,
     WalletOption.OKX,
     WalletOption.ONEKEY,
@@ -189,6 +178,7 @@ export const availableChainsByWallet: Record<WalletOption, Chain[] | readonly Ch
     Chain.Chainflip,
   ],
   [WalletOption.EXODUS]: [Chain.Ethereum, Chain.BinanceSmartChain, Chain.Polygon, Chain.Bitcoin],
+  [WalletOption.PASSKEYS]: [Chain.Ethereum, Chain.BinanceSmartChain, Chain.Polygon, Chain.Bitcoin],
   [WalletOption.LEDGER_LIVE]: [],
   [WalletOption.COSMOSTATION]: [],
   [WalletOption.VULTISIG]: [],
@@ -198,185 +188,158 @@ export const availableChainsByWallet: Record<WalletOption, Chain[] | readonly Ch
   [WalletOption.WALLET_SELECTOR]: [],
 };
 
+const FEATURED_WALLETS = [
+  WalletOption.METAMASK,
+  WalletOption.CTRL,
+  WalletOption.COINBASE_WEB,
+  WalletOption.KEYSTORE,
+  WalletOption.LEDGER,
+  WalletOption.TREZOR,
+  WalletOption.BRAVE,
+  WalletOption.OKX,
+];
+
 export function WalletConnectDialog() {
   const modal = useModal();
+  const [isShowingAllWallets, setIsShowingAllWallets] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [selectedChains, setSelectedChains] = useState<Chain[]>([]);
-  const { connectWallet, isConnectingWallet } = useSwapKit();
+  const filteredWalletGroups = useMemo(() => {
+    return Object.entries(WALLET_GROUPS)
+      ?.map(([groupTitle, wallets]) => {
+        const matchingWallets = wallets?.filter((wallet) => wallet.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const handleToggleGroup = (chains: Chain[]) => {
-    const allSelected = chains.every((chain) => selectedChains.includes(chain));
-    if (allSelected) {
-      setSelectedChains((prev) => prev.filter((chain) => !chains.includes(chain)));
-    } else {
-      setSelectedChains((prev) => [...new Set([...prev, ...chains])]);
-    }
-  };
+        if (matchingWallets?.length === 0) return null;
+
+        return { groupTitle, wallets: matchingWallets };
+      })
+      ?.filter((group) => group !== null);
+  }, [searchQuery]);
 
   return (
     <Dialog {...modal}>
-      <DialogContent className="flex h-[80vh] max-w-5xl flex-col p-0">
-        <DialogHeader className="p-6 pb-2">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl">Connect Wallet</DialogTitle>
-            <Button onClick={() => modal.onOpenChange(false)} size="icon" variant="ghost">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Connect wallet</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="grid h-full grid-cols-2 divide-x">
-            <div className="flex flex-col overflow-hidden">
-              <div className="p-6 pb-4">
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    if (selectedChains.length === AllChainsSupported.length) {
-                      setSelectedChains([]);
-                    } else {
-                      setSelectedChains(AllChainsSupported);
-                    }
-                  }}
-                  size="sm"
-                  variant={selectedChains.length === AllChainsSupported.length ? "default" : "outline"}>
-                  {selectedChains.length === AllChainsSupported.length ? "Deselect All" : "Select All Chains"}
-                </Button>
-              </div>
+        <div className="sk-ui-relative">
+          <Input
+            className="sk-ui-h-10 sk-ui-bg-secondary sk-ui-pl-9 placeholer:sk-ui-text-muted-foreground sk-ui-text-base sk-ui-text-foreground"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search wallet provider"
+            value={searchQuery}
+          />
 
-              <div className="flex-1 overflow-y-auto px-6">
-                {Object.entries(CHAIN_GROUPS).map(([groupName, chains]) => {
-                  const allSelected = chains.every((chain) => selectedChains.includes(chain));
-                  const someSelected = chains.some((chain) => selectedChains.includes(chain));
-
-                  return (
-                    <div className="mb-6" key={groupName}>
-                      <Button
-                        className="mb-2 w-full justify-between font-bold"
-                        onClick={() => handleToggleGroup(chains)}
-                        size="sm"
-                        variant="ghost">
-                        {groupName}
-                        <span className="text-muted-foreground text-xs">
-                          {allSelected ? "(All Selected)" : someSelected ? "(Some Selected)" : "(None Selected)"}
-                        </span>
-                      </Button>
-                      <div className="grid grid-cols-2 gap-2">
-                        {chains.map((chain) => {
-                          const isSelected = selectedChains.includes(chain);
-                          return (
-                            <Button
-                              className="justify-start"
-                              key={chain}
-                              onClick={() => {
-                                setSelectedChains((prev) =>
-                                  isSelected ? prev.filter((c) => c !== chain) : [...prev, chain],
-                                );
-                              }}
-                              size="sm"
-                              variant={isSelected ? "default" : "outline"}>
-                              <ChainIcon chain={chain} className="mr-2 h-5 w-5" />
-                              <span className="truncate">{chain}</span>
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex flex-col overflow-hidden">
-              <div className="p-6 pb-4">
-                <h3 className="font-semibold text-lg">Select Wallet</h3>
-              </div>
-
-              {selectedChains.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center p-6 text-center">
-                  <div className="max-w-sm">
-                    <h3 className="mb-2 font-semibold">No Chains Selected</h3>
-                    <p className="text-muted-foreground text-sm">Select one or more chains to see compatible wallets</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex-1 overflow-y-auto px-6">
-                  {(() => {
-                    const supportedWallets = Object.entries(WALLET_GROUPS)
-                      .map(([groupName, wallets]) => {
-                        const groupWallets = wallets.filter((wallet) => {
-                          const supportedChains = availableChainsByWallet[wallet];
-
-                          return (
-                            supportedChains?.length > 0 &&
-                            selectedChains.every((chain) => supportedChains.includes(chain))
-                          );
-                        });
-
-                        if (groupWallets.length === 0) return null;
-
-                        return (
-                          <div className="mb-6" key={groupName}>
-                            <h4 className="mb-2 font-semibold">{groupName}</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {groupWallets.map((wallet) => {
-                                const handleWalletConnect = async () => {
-                                  try {
-                                    await connectWallet(wallet, selectedChains);
-
-                                    modal.resolve({ confirmed: true });
-                                  } catch (error) {
-                                    if (error instanceof Error) {
-                                      toast.error("Failed to connect wallet", { description: error.message });
-                                    }
-                                  }
-                                };
-
-                                return (
-                                  <Button
-                                    className="h-auto justify-start py-4"
-                                    disabled={isConnectingWallet}
-                                    key={wallet}
-                                    onClick={handleWalletConnect}
-                                    size="lg"
-                                    variant="outline">
-                                    <WalletIcon className="mr-3 h-6 w-6" wallet={wallet} />
-                                    <div className="flex flex-col items-start">
-                                      <span className="font-medium">{wallet}</span>
-                                      {isConnectingWallet && (
-                                        <span className="text-muted-foreground text-xs">Connecting...</span>
-                                      )}
-                                    </div>
-                                  </Button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })
-                      .filter(Boolean);
-
-                    if (supportedWallets.length === 0) {
-                      return (
-                        <div className="flex flex-1 items-center justify-center text-center">
-                          <div className="max-w-sm">
-                            <h3 className="mb-2 font-semibold">No Compatible Wallets</h3>
-                            <p className="text-muted-foreground text-sm">
-                              No wallets support this combination of chains. Please select different chains.
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    return supportedWallets;
-                  })()}
-                </div>
-              )}
-            </div>
-          </div>
+          <SearchIcon className="sk-ui--translate-y-1/2 sk-ui-absolute sk-ui-top-1/2 sk-ui-left-3 sk-ui-size-4 sk-ui-text-muted-foreground" />
         </div>
+
+        <div className="sk-ui--mx-6 sk-ui--mb-4 sk-ui-flex sk-ui-max-h-[60svh] sk-ui-flex-1 sk-ui-flex-col sk-ui-gap-4 sk-ui-overflow-auto sk-ui-px-6 sk-ui-pb-6">
+          {match({ isShowingAllWallets, searchQuery })
+            .with({ isShowingAllWallets: true }, { searchQuery: P.string.minLength(2) }, () =>
+              filteredWalletGroups?.map(({ groupTitle, wallets }) => {
+                return (
+                  <div className="sk-ui-flex sk-ui-flex-col sk-ui-gap-2" key={`wallet-group-${groupTitle}`}>
+                    <header className="sk-ui-text-muted-foreground sk-ui-text-sm">{groupTitle}</header>
+
+                    <div className="sk-ui-grid sk-ui-grid-cols-4 sk-ui-gap-2">
+                      {wallets?.map((wallet) => (
+                        <WalletConnectButton key={`wallet-button-${wallet}`} wallet={wallet} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              }),
+            )
+            .otherwise(() => (
+              <div className="sk-ui-grid sk-ui-grid-cols-4 sk-ui-gap-2">
+                {FEATURED_WALLETS?.map((wallet) => (
+                  <WalletConnectButton key={`wallet-button-${wallet}`} wallet={wallet} />
+                ))}
+              </div>
+            ))}
+        </div>
+
+        <DialogFooter className="sk-ui-items-center sk-ui-justify-center sm:sk-ui-flex-col">
+          <Button
+            className="sk-ui--mt-1 sk-ui-w-auto sk-ui-text-foreground"
+            onClick={() => {
+              setIsShowingAllWallets((isShowingAllWallets) => !isShowingAllWallets);
+            }}
+            size="sm"
+            variant="ghost">
+            <WalletMinimalIcon className="sk-ui-size-4" />
+
+            <span>{isShowingAllWallets ? "Hide all wallets" : "Show all wallets"}</span>
+          </Button>
+
+          <p className="sk-ui-max-w-sm sk-ui-text-center sk-ui-text-muted-foreground sk-ui-text-sm">
+            By connecting your wallet, you agree to our{" "}
+            <a className="sk-ui-text-foreground sk-ui-underline" href="/terms">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a className="sk-ui-text-foreground sk-ui-underline" href="/privacy">
+              Privacy Policy
+            </a>
+          </p>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function WalletConnectButton({ wallet }: { wallet: WalletOption }) {
+  const { connectWallet, isConnectingWallet, walletType } = useSwapKit();
+  const modal = useModal();
+
+  const handleWalletClick = useCallback(async () => {
+    try {
+      const chainsForWallet = availableChainsByWallet?.[wallet] as Chain[];
+
+      if (!chainsForWallet || chainsForWallet?.length === 0) {
+        toast.error("This wallet does not support any chains", {
+          description: "Please try a different wallet.",
+          toasterId: SWAPKIT_WIDGET_TOASTER_ID,
+        });
+        return;
+      }
+
+      await match(wallet)
+        .with(WalletOption.KEYSTORE, async () => {
+          const { confirmed } = await showModal(<WalletKeystoreConnectDialog />);
+
+          if (!confirmed) return;
+
+          modal.resolve({ confirmed: true, data: wallet });
+        })
+        .otherwise(async () => {
+          await connectWallet(wallet, chainsForWallet);
+
+          modal.resolve({ confirmed: true, data: wallet });
+        });
+    } catch {
+      toast.error("Failed to connect your wallet", {
+        description: "Make sure your wallet is connected and accessible by the browser.",
+        toasterId: SWAPKIT_WIDGET_TOASTER_ID,
+      });
+    }
+  }, [connectWallet, modal, wallet]);
+
+  const walletName = wallet
+    ?.split("")
+    ?.map((letter, index) => (index === 0 ? letter.toUpperCase() : letter.toLowerCase()))
+    ?.join("");
+
+  return (
+    <Button
+      className="sk-ui-flex sk-ui-h-full sk-ui-w-full sk-ui-flex-col sk-ui-items-center sk-ui-justify-center sk-ui-gap-1 sk-ui-aspect-[1.525/1]"
+      isLoading={isConnectingWallet && walletType === wallet}
+      key={`wallet-connect-button-${wallet}`}
+      onClick={handleWalletClick}>
+      <WalletIcon className="sk-ui-size-5" wallet={wallet} />
+
+      <span className="sk-ui-text-foreground sk-ui-text-sm">{walletName}</span>
+    </Button>
   );
 }

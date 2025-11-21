@@ -1,47 +1,49 @@
 "use client";
 
-import { Input } from "../ui/input";
+import { SwapAmountInput } from "./swap-amount-input";
 import { SwapAssetSelect } from "./swap-asset-select";
 
 export function SwapInputWithChainSelector({
   label,
+  formattedAmountUSD,
+
+  isSwapping,
+  isLoading,
 
   selectedAsset,
   setSelectedAsset,
 
   amount,
   setAmount,
-
-  isSwapping,
 }: {
   label: string;
+  formattedAmountUSD: string | undefined;
 
-  // TODO: move to react-hook-form
+  isSwapping: boolean;
+  isLoading?: boolean;
+
   selectedAsset: string | undefined;
   setSelectedAsset: (asset: string) => void;
-  amount: string | undefined;
-  setAmount?: (amount: string) => void;
-  isSwapping: boolean;
-}) {
-  return (
-    <div className="-my-2">
-      <span className="text-muted-foreground text-xs">{label}</span>
 
-      <div className="flex justify-between">
+  amount: string | null | undefined;
+  setAmount?: (amount: string) => void;
+}) {
+  const isInputDisabled = !selectedAsset || isSwapping || isLoading || !setAmount;
+
+  return (
+    <div className="sk-ui--my-2">
+      <span className="sk-ui-text-muted-foreground sk-ui-text-xs">{label}</span>
+
+      <div className="sk-ui-flex sk-ui-justify-between">
         <SwapAssetSelect selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} />
 
-        <div className="flex flex-col items-end">
-          <Input
-            className="-mr-4 !shadow-none !border-0 !ring-0 !ring-offset-0 bg-transparent text-end font-medium text-2xl"
-            disabled={!selectedAsset || isSwapping || !setAmount}
-            onChange={(e) => setAmount?.(e.target.value)}
-            placeholder="0.00"
-            type="text"
-            value={amount}
-          />
-
-          <span className="text-muted-foreground text-sm">$0.00</span>
-        </div>
+        <SwapAmountInput
+          amount={amount}
+          disabled={isInputDisabled}
+          formattedAmountUSD={formattedAmountUSD}
+          isLoading={isLoading}
+          setAmount={setAmount}
+        />
       </div>
     </div>
   );

@@ -2,7 +2,8 @@
 // - `sdk/toolboxes`
 // - `sdk/plugins`
 // - `sdk/wallets`
-import { SwapKit } from "@swapkit/core";
+import { type SKConfigState, SwapKit } from "@swapkit/core";
+import type { createPlugin } from "@swapkit/plugins";
 import { ChainflipPlugin } from "@swapkit/plugins/chainflip";
 import { EVMPlugin } from "@swapkit/plugins/evm";
 import { GardenPlugin } from "@swapkit/plugins/garden";
@@ -11,12 +12,12 @@ import { RadixPlugin } from "@swapkit/plugins/radix";
 import { SolanaPlugin } from "@swapkit/plugins/solana";
 import { SwapPlugin } from "@swapkit/plugins/swap";
 import { MayachainPlugin, ThorchainPlugin } from "@swapkit/plugins/thorchain";
+import type { createWallet } from "@swapkit/wallets";
 
 import { bitgetWallet } from "@swapkit/wallets/bitget";
 import { coinbaseWallet } from "@swapkit/wallets/coinbase";
 import { ctrlWallet } from "@swapkit/wallets/ctrl";
 import { evmWallet } from "@swapkit/wallets/evm-extensions";
-import { exodusWallet } from "@swapkit/wallets/exodus";
 import { keepkeyWallet } from "@swapkit/wallets/keepkey";
 import { keepkeyBexWallet } from "@swapkit/wallets/keepkey-bex";
 import { keplrWallet } from "@swapkit/wallets/keplr";
@@ -25,6 +26,7 @@ import { ledgerWallet } from "@swapkit/wallets/ledger";
 import { walletSelectorWallet } from "@swapkit/wallets/near-wallet-selector";
 import { okxWallet } from "@swapkit/wallets/okx";
 import { onekeyWallet } from "@swapkit/wallets/onekey";
+import { passkeysWallet } from "@swapkit/wallets/passkeys";
 import { phantomWallet } from "@swapkit/wallets/phantom";
 import { polkadotWallet } from "@swapkit/wallets/polkadotjs";
 import { radixWallet } from "@swapkit/wallets/radix";
@@ -54,19 +56,22 @@ export * from "@swapkit/toolboxes/substrate";
 export * from "@swapkit/toolboxes/utxo";
 export * from "@swapkit/wallets";
 
+const exodusWallet = { ...passkeysWallet, connectExodusWallet: passkeysWallet.connectPasskeys };
+
 export {
   bitgetWallet,
   coinbaseWallet,
   ctrlWallet,
   evmWallet,
   exodusWallet,
-  keepkeyWallet,
   keepkeyBexWallet,
+  keepkeyWallet,
   keplrWallet,
   keystoreWallet,
   ledgerWallet,
   okxWallet,
   onekeyWallet,
+  passkeysWallet,
   phantomWallet,
   polkadotWallet,
   radixWallet,
@@ -74,8 +79,8 @@ export {
   trezorWallet,
   tronlinkWallet,
   vultisigWallet,
-  walletconnectWallet,
   walletSelectorWallet,
+  walletconnectWallet,
   xamanWallet,
 };
 
@@ -106,16 +111,23 @@ export const defaultWallets = {
   ...onekeyWallet,
   ...phantomWallet,
   ...polkadotWallet,
+  ...passkeysWallet,
   ...radixWallet,
   ...talismanWallet,
   ...trezorWallet,
   ...tronlinkWallet,
   ...vultisigWallet,
-  ...walletconnectWallet,
   ...walletSelectorWallet,
+  ...walletconnectWallet,
   ...xamanWallet,
-};
+} as ReturnType<typeof createWallet>;
 
-export function createSwapKit(config: Parameters<typeof SwapKit>[0] = {}) {
-  return SwapKit({ plugins: defaultPlugins, wallets: defaultWallets, ...config });
+export function createSwapKit<
+  Plugins extends ReturnType<typeof createPlugin>,
+  Wallets extends ReturnType<typeof createWallet>,
+>({ config, plugins, wallets }: { config?: SKConfigState; plugins?: Plugins; wallets?: Wallets } = {}) {
+  const mergedPlugins = { ...defaultPlugins, ...plugins };
+  const mergedWallets = { ...defaultWallets, ...wallets };
+
+  return SwapKit({ config: config, plugins: mergedPlugins, wallets: mergedWallets });
 }

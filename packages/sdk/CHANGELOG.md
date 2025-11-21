@@ -1,5 +1,115 @@
 # @swapkit/sdk
 
+## 4.2.2
+
+### Patch Changes
+
+- [#1593](https://github.com/swapkit/SwapKit/pull/1593) [`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Passkeys wallet and rename internally for that
+
+- Updated dependencies [[`948bc18`](https://github.com/swapkit/SwapKit/commit/948bc1889870c1bf4fb00abf72e8ad1fe13474a0), [`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d)]:
+  - @swapkit/toolboxes@4.3.2
+  - @swapkit/helpers@4.5.2
+  - @swapkit/wallets@4.3.2
+  - @swapkit/core@4.1.2
+  - @swapkit/plugins@4.2.2
+  - @swapkit/server@4.0.46
+
+## 4.2.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/helpers@4.5.1
+  - @swapkit/server@4.0.45
+  - @swapkit/core@4.1.1
+  - @swapkit/plugins@4.2.1
+  - @swapkit/toolboxes@4.3.1
+  - @swapkit/wallets@4.3.1
+
+## 4.2.0
+
+### Minor Changes
+
+- [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Updates to isolated modules & wallet extensions extraction
+
+### Patch Changes
+
+- Updated dependencies [[`e6f25c7`](https://github.com/swapkit/SwapKit/commit/e6f25c78b0469131c9ff6895cc506075ead6290c), [`bcb9509`](https://github.com/swapkit/SwapKit/commit/bcb9509cb004f80a7b22fdeafb2ce7d34d831c99), [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317)]:
+  - @swapkit/toolboxes@4.3.0
+  - @swapkit/helpers@4.5.0
+  - @swapkit/plugins@4.2.0
+  - @swapkit/wallets@4.3.0
+  - @swapkit/core@4.1.0
+  - @swapkit/server@4.0.44
+
+## 4.1.13
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/core@4.0.44
+  - @swapkit/plugins@4.1.16
+  - @swapkit/server@4.0.43
+  - @swapkit/wallets@4.2.10
+
+## 4.1.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/core@4.0.43
+  - @swapkit/plugins@4.1.15
+  - @swapkit/server@4.0.42
+  - @swapkit/wallets@4.2.9
+
+## 4.1.11
+
+### Patch Changes
+
+- Updated dependencies [[`955172a`](https://github.com/swapkit/SwapKit/commit/955172a033d7b5989d84e8e6f28d20a0b322952b)]:
+  - @swapkit/wallets@4.2.8
+  - @swapkit/core@4.0.42
+  - @swapkit/plugins@4.1.14
+  - @swapkit/server@4.0.41
+
+## 4.1.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/core@4.0.41
+  - @swapkit/plugins@4.1.13
+  - @swapkit/server@4.0.40
+  - @swapkit/wallets@4.2.7
+
+## 4.1.9
+
+### Patch Changes
+
+- [#1567](https://github.com/swapkit/SwapKit/pull/1567) [`4ff0c31`](https://github.com/swapkit/SwapKit/commit/4ff0c316f50a7616725ec6f29e54b7e2038997d7) Thanks [@towanTG](https://github.com/towanTG)! - Fixes createSwapKit default typing
+
+## 4.1.8
+
+### Patch Changes
+
+- [#1565](https://github.com/swapkit/SwapKit/pull/1565) [`aef8b5a`](https://github.com/swapkit/SwapKit/commit/aef8b5a1b83861d3b99941ac82136294fb85d8d8) Thanks [@towanTG](https://github.com/towanTG)! - Improves typing for wallet + plugin injection
+
+- Updated dependencies [[`aef8b5a`](https://github.com/swapkit/SwapKit/commit/aef8b5a1b83861d3b99941ac82136294fb85d8d8)]:
+  - @swapkit/plugins@4.1.12
+  - @swapkit/core@4.0.40
+  - @swapkit/server@4.0.39
+  - @swapkit/wallets@4.2.6
+
+## 4.1.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/wallets@4.2.5
+  - @swapkit/core@4.0.39
+  - @swapkit/plugins@4.1.11
+  - @swapkit/server@4.0.38
+
 ## 4.1.6
 
 ### Patch Changes

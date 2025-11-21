@@ -231,7 +231,8 @@ export const createTronToolbox = async (
 
       return balance ? (typeof balance === "bigint" ? balance : BigInt(balance)) : 0n;
     } catch (err) {
-      console.warn(`balanceOf() failed for ${contractAddress}:`, err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn(`balanceOf() failed for ${contractAddress}: ${errorMessage}`);
       return 0n;
     }
   };
@@ -260,7 +261,9 @@ export const createTronToolbox = async (
       warnOnce({
         condition: true,
         id: "tron_toolbox_get_token_metadata_failed",
-        warning: `Failed to get token metadata for ${contractAddress}: ${error instanceof Error ? error.message : error}`,
+        warning: `Failed to get token metadata for ${contractAddress}: ${
+          error instanceof Error ? error.message : error
+        }`,
       });
       return null;
     }
@@ -329,35 +332,19 @@ export const createTronToolbox = async (
 
         return balances;
       } catch (fallbackError) {
-        console.error("Tron balance fetch failed:", fallbackError);
+        const errorMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error(`Tron balance fetch failed: ${errorMessage}`);
         return fallbackBalance;
       }
     }
   };
 
-  const transfer = async ({ recipient, assetValue, memo }: TronTransferParams) => {
+  const transfer = async ({ recipient, assetValue, memo, expiration }: TronTransferParams) => {
     if (!signer) throw new SwapKitError("toolbox_tron_no_signer");
 
     const from = await getAddress();
     tronWeb.setAddress(from);
-    const isNative = assetValue.isGasAsset;
-
-    if (isNative) {
-      const transaction = await tronWeb.transactionBuilder.sendTrx(recipient, assetValue.getBaseValue("number"), from);
-
-      if (memo) {
-        const transactionWithMemo = await tronWeb.transactionBuilder.addUpdateData(transaction, memo, "utf8");
-        const signedTx = await signer.signTransaction(transactionWithMemo);
-        const { txid } = await tronWeb.trx.sendRawTransaction(signedTx);
-        return txid;
-      }
-
-      const signedTx = await signer.signTransaction(transaction);
-      const { txid } = await tronWeb.trx.sendRawTransaction(signedTx);
-      return txid;
-    }
-
-    const transaction = await createTransaction({ assetValue, memo, recipient, sender: from });
+    const transaction = await createTransaction({ assetValue, expiration, memo, recipient, sender: from });
 
     const signedTx = await signer.signTransaction(transaction);
     const { txid } = await tronWeb.trx.sendRawTransaction(signedTx);
@@ -373,8 +360,8 @@ export const createTronToolbox = async (
     assetValue,
     recipient,
     sender,
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO
-  }: TronTransferParams & { sender?: string }) => {
+  }: // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO
+  TronTransferParams & { sender?: string }) => {
     const isNative = assetValue.isGasAsset;
 
     try {
@@ -432,7 +419,9 @@ export const createTronToolbox = async (
       warnOnce({
         condition: true,
         id: "tron_toolbox_fee_estimation_failed",
-        warning: `Failed to calculate exact fee, using conservative estimate: ${error instanceof Error ? error.message : error}`,
+        warning: `Failed to calculate exact fee, using conservative estimate: ${
+          error instanceof Error ? error.message : error
+        }`,
       });
 
       throw new SwapKitError("toolbox_tron_fee_estimation_failed", { error });
@@ -443,6 +432,26 @@ export const createTronToolbox = async (
     const { recipient, assetValue, memo, sender, expiration } = params;
     const isNative = assetValue.isGasAsset;
 
+    const addTxData = async ({
+      transaction,
+      memo,
+      expiration,
+    }: {
+      transaction: TronTransaction;
+      memo?: string;
+      expiration?: number;
+    }) => {
+      const transactionWithMemo = memo
+        ? await tronWeb.transactionBuilder.addUpdateData(transaction, memo, "utf8")
+        : transaction;
+
+      const transactionFinal = expiration
+        ? await tronWeb.transactionBuilder.extendExpiration(transactionWithMemo, expiration)
+        : transactionWithMemo;
+
+      return transactionFinal;
+    };
+
     if (isNative) {
       const transaction = await tronWeb.transactionBuilder.sendTrx(
         recipient,
@@ -450,15 +459,8 @@ export const createTronToolbox = async (
         sender,
       );
 
-      if (memo) {
-        return tronWeb.transactionBuilder.addUpdateData(transaction, memo, "utf8");
-      }
-
-      if (expiration) {
-        tronWeb.transactionBuilder.extendExpiration(transaction, expiration);
-      }
-
-      return transaction;
+      const txWithData = addTxData({ expiration, memo, transaction });
+      return txWithData;
     }
 
     tronWeb.setAddress(sender);
@@ -476,7 +478,7 @@ export const createTronToolbox = async (
 
       const options = { callValue: 0, feeLimit: calculateFeeLimit() };
 
-      const result = await tronWeb.transactionBuilder.triggerSmartContract(
+      const { transaction } = await tronWeb.transactionBuilder.triggerSmartContract(
         contractAddress,
         functionSelector,
         options,
@@ -484,19 +486,11 @@ export const createTronToolbox = async (
         sender,
       );
 
-      if (memo) {
-        return tronWeb.transactionBuilder.addUpdateData(result.transaction, memo, "utf8");
-      }
-
-      if (expiration) {
-        tronWeb.transactionBuilder.extendExpiration(result.transaction, expiration);
-      }
-
-      return result.transaction;
+      const txWithData = addTxData({ expiration, memo, transaction });
+      return txWithData;
     } catch (error) {
       throw new SwapKitError("toolbox_tron_transaction_creation_failed", {
-        message:
-          "Failed to create TRC20 transaction. This might be due to TronWeb 6.0.3 bug. Use the transfer method directly instead.",
+        message: "Failed to create TRC20 transaction.",
         originalError: error instanceof Error ? error.message : String(error),
       });
     }

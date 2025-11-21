@@ -1,5 +1,115 @@
 # @swapkit/wallets
 
+## 4.3.2
+
+### Patch Changes
+
+- [#1593](https://github.com/swapkit/SwapKit/pull/1593) [`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Passkeys wallet and rename internally for that
+
+- Updated dependencies [[`948bc18`](https://github.com/swapkit/SwapKit/commit/948bc1889870c1bf4fb00abf72e8ad1fe13474a0), [`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d)]:
+  - @swapkit/toolboxes@4.3.2
+  - @swapkit/wallet-extensions@4.1.2
+  - @swapkit/helpers@4.5.2
+  - @swapkit/wallet-hardware@4.2.2
+  - @swapkit/wallet-keystore@4.1.2
+  - @swapkit/wallet-core@4.0.46
+
+## 4.3.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/helpers@4.5.1
+  - @swapkit/toolboxes@4.3.1
+  - @swapkit/wallet-core@4.0.45
+  - @swapkit/wallet-extensions@4.1.1
+  - @swapkit/wallet-hardware@4.2.1
+  - @swapkit/wallet-keystore@4.1.1
+
+## 4.3.0
+
+### Minor Changes
+
+- [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Updates to isolated modules & wallet extensions extraction
+
+### Patch Changes
+
+- Updated dependencies [[`e6f25c7`](https://github.com/swapkit/SwapKit/commit/e6f25c78b0469131c9ff6895cc506075ead6290c), [`bcb9509`](https://github.com/swapkit/SwapKit/commit/bcb9509cb004f80a7b22fdeafb2ce7d34d831c99), [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317)]:
+  - @swapkit/toolboxes@4.3.0
+  - @swapkit/helpers@4.5.0
+  - @swapkit/wallet-extensions@4.1.0
+  - @swapkit/wallet-hardware@4.2.0
+  - @swapkit/wallet-keystore@4.1.0
+  - @swapkit/wallet-core@4.0.44
+
+## 4.2.10
+
+### Patch Changes
+
+- Updated dependencies [[`ad97c7f`](https://github.com/swapkit/SwapKit/commit/ad97c7fac861bf86ebb0eac7dd6d8e369965cd61)]:
+  - @swapkit/helpers@4.4.5
+  - @swapkit/toolboxes@4.2.1
+  - @swapkit/wallet-core@4.0.43
+  - @swapkit/wallet-hardware@4.1.42
+  - @swapkit/wallet-keystore@4.0.43
+
+## 4.2.9
+
+### Patch Changes
+
+- Updated dependencies [[`9bc18fc`](https://github.com/swapkit/SwapKit/commit/9bc18fcd4724a1c09731feca3e0a3e1926a8b2a4)]:
+  - @swapkit/toolboxes@4.2.0
+  - @swapkit/helpers@4.4.4
+  - @swapkit/wallet-hardware@4.1.41
+  - @swapkit/wallet-keystore@4.0.42
+  - @swapkit/wallet-core@4.0.42
+
+## 4.2.8
+
+### Patch Changes
+
+- [#1573](https://github.com/swapkit/SwapKit/pull/1573) [`955172a`](https://github.com/swapkit/SwapKit/commit/955172a033d7b5989d84e8e6f28d20a0b322952b) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Fix cosmos transfer base fee
+
+- Updated dependencies [[`955172a`](https://github.com/swapkit/SwapKit/commit/955172a033d7b5989d84e8e6f28d20a0b322952b)]:
+  - @swapkit/toolboxes@4.1.13
+  - @swapkit/helpers@4.4.3
+  - @swapkit/wallet-hardware@4.1.40
+  - @swapkit/wallet-keystore@4.0.41
+  - @swapkit/wallet-core@4.0.41
+
+## 4.2.7
+
+### Patch Changes
+
+- Updated dependencies [[`2c328fd`](https://github.com/swapkit/SwapKit/commit/2c328fd19a23c16d241ca1c6bd5abe163e502b85)]:
+  - @swapkit/toolboxes@4.1.12
+  - @swapkit/helpers@4.4.2
+  - @swapkit/wallet-hardware@4.1.39
+  - @swapkit/wallet-keystore@4.0.40
+  - @swapkit/wallet-core@4.0.40
+
+## 4.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`aef8b5a`](https://github.com/swapkit/SwapKit/commit/aef8b5a1b83861d3b99941ac82136294fb85d8d8)]:
+  - @swapkit/helpers@4.4.1
+  - @swapkit/toolboxes@4.1.11
+  - @swapkit/wallet-core@4.0.39
+  - @swapkit/wallet-hardware@4.1.38
+  - @swapkit/wallet-keystore@4.0.39
+
+## 4.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`57d4a14`](https://github.com/swapkit/SwapKit/commit/57d4a14561f519e85f13998dd9b0d642fd660900), [`3536550`](https://github.com/swapkit/SwapKit/commit/3536550dc088c491d2d5efb874439bbf39005186)]:
+  - @swapkit/wallet-hardware@4.1.37
+  - @swapkit/helpers@4.4.0
+  - @swapkit/toolboxes@4.1.10
+  - @swapkit/wallet-core@4.0.38
+  - @swapkit/wallet-keystore@4.0.38
+
 ## 4.2.4
 
 ### Patch Changes

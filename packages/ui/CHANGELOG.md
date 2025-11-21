@@ -1,5 +1,90 @@
 # @swapkit/ui
 
+## 0.3.2
+
+### Patch Changes
+
+- [#1593](https://github.com/swapkit/SwapKit/pull/1593) [`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Passkeys wallet and rename internally for that
+
+- Updated dependencies [[`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d)]:
+  - @swapkit/helpers@4.5.2
+  - @swapkit/wallets@4.3.2
+  - @swapkit/sdk@4.2.2
+  - @swapkit/wallet-keystore@4.1.2
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/helpers@4.5.1
+  - @swapkit/sdk@4.2.1
+  - @swapkit/wallet-keystore@4.1.1
+  - @swapkit/wallets@4.3.1
+
+## 0.3.0
+
+### Minor Changes
+
+- [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Updates to isolated modules & wallet extensions extraction
+
+### Patch Changes
+
+- Updated dependencies [[`e6f25c7`](https://github.com/swapkit/SwapKit/commit/e6f25c78b0469131c9ff6895cc506075ead6290c), [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317)]:
+  - @swapkit/helpers@4.5.0
+  - @swapkit/wallet-keystore@4.1.0
+  - @swapkit/wallets@4.3.0
+  - @swapkit/sdk@4.2.0
+
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/sdk@4.1.13
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/sdk@4.1.12
+
+## 0.2.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/sdk@4.1.11
+
+## 0.2.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/sdk@4.1.10
+
+## 0.2.9
+
+### Patch Changes
+
+- Updated dependencies [[`4ff0c31`](https://github.com/swapkit/SwapKit/commit/4ff0c316f50a7616725ec6f29e54b7e2038997d7)]:
+  - @swapkit/sdk@4.1.9
+
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`aef8b5a`](https://github.com/swapkit/SwapKit/commit/aef8b5a1b83861d3b99941ac82136294fb85d8d8)]:
+  - @swapkit/sdk@4.1.8
+
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/sdk@4.1.7
+
 ## 0.2.6
 
 ### Patch Changes

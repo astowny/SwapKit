@@ -73,7 +73,7 @@ export async function getSignerFromPrivateKey({ privateKey, prefix }: { privateK
 }
 
 const SafeDefaultFeeValues = {
-  [Chain.Cosmos]: 500,
+  [Chain.Cosmos]: 1000,
   [Chain.Kujira]: 1000,
   [Chain.Noble]: 1000,
   [Chain.THORChain]: 5000000,
@@ -173,6 +173,42 @@ export async function createCosmosToolbox({ chain, ...toolboxParams }: CosmosToo
     return result.transactionHash;
   }
 
+  //   async function transfer({
+  //     recipient,
+  //     assetValue,
+  //     memo = "",
+  //     feeRate,
+  //     feeOptionKey = FeeOption.Fast,
+  //   }: GenericTransferParams) {
+  //     const from = await getAddress();
+
+  //     if (!(signer && from)) {
+  //       throw new SwapKitError("toolbox_cosmos_signer_not_defined");
+  //     }
+
+  //     const feeAssetValue = AssetValue.from({ chain });
+  //     const assetDenom = getDenomWithChain(feeAssetValue);
+  //     const txFee = feeRate || feeToStdFee((await getFees(chain, SafeDefaultFeeValues[chain]))[feeOptionKey], assetDenom);
+
+  //     const signingClient = await createSigningStargateClient(rpcUrl, signer);
+  //     const denom = getMsgSendDenom(assetValue.symbol);
+  //     const amount = assetValue.getBaseValue("string");
+
+  //     const { TxRaw } = await import("cosmjs-types/cosmos/tx/v1beta1/tx");
+
+  //     const msgSend = { amount: [{ amount, denom }], fromAddress: from, toAddress: recipient };
+
+  //     const txRaw = await signingClient.sign(
+  //       from,
+  //       [{ typeUrl: "/cosmos.bank.v1beta1.MsgSend", value: msgSend }],
+  //       txFee as StdFee,
+  //       memo,
+  //     );
+
+  //     const txBytes = TxRaw.encode(txRaw).finish();
+  //     return Buffer.from(txBytes).toString("hex");
+  //   }
+
   async function transfer({
     recipient,
     assetValue,
@@ -188,13 +224,11 @@ export async function createCosmosToolbox({ chain, ...toolboxParams }: CosmosToo
 
     const feeAssetValue = AssetValue.from({ chain });
     const assetDenom = getDenomWithChain(feeAssetValue);
-
     const txFee = feeRate || feeToStdFee((await getFees(chain, SafeDefaultFeeValues[chain]))[feeOptionKey], assetDenom);
 
     const signingClient = await createSigningStargateClient(rpcUrl, signer);
-    const message = [
-      { amount: assetValue.getBaseValue("string"), denom: getMsgSendDenom(`u${assetValue.symbol}`).toLowerCase() },
-    ];
+    const denom = getMsgSendDenom(assetValue.symbol);
+    const message = [{ amount: assetValue.getBaseValue("string"), denom }];
 
     const { transactionHash } = await signingClient.sendTokens(from, recipient, message, txFee, memo);
 

@@ -14,6 +14,8 @@ import {
 } from "@swapkit/helpers";
 import type { SolanaProvider } from "@swapkit/toolboxes/solana";
 import type { Eip1193Provider } from "ethers";
+import { match } from "ts-pattern";
+import type { NearBrowserWalletProvider } from "../helpers/near";
 
 type TransactionMethod = "transfer" | "deposit";
 
@@ -34,43 +36,31 @@ export type WalletTxParams = {
   gasLimit?: string | bigint;
 };
 
-export async function getCtrlProvider<T extends Chain>(
-  chain: T,
-): Promise<
-  T extends typeof Chain.Solana
-    ? SolanaProvider
-    : T extends Exclude<CosmosChain, TCLikeChain>
-      ? Keplr
-      : T extends EVMChain
-        ? Eip1193Provider
-        : undefined
-> {
-  if (!window.xfi) throw new SwapKitError("wallet_ctrl_not_found");
-  const { match } = await import("ts-pattern");
+type CtrlProviderType<T> = T extends typeof Chain.Solana
+  ? SolanaProvider
+  : T extends Exclude<CosmosChain, TCLikeChain>
+    ? Keplr
+    : T extends EVMChain
+      ? Eip1193Provider
+      : T extends typeof Chain.Near
+        ? NearBrowserWalletProvider
+        : undefined;
+
+export function getCtrlProvider<T extends Chain>(chain: T): CtrlProviderType<T> {
+  if (!window.ctrl) throw new SwapKitError("wallet_ctrl_not_found");
 
   // @ts-expect-error
   return match(chain as Chain)
-    .with(
-      Chain.Arbitrum,
-      Chain.Aurora,
-      Chain.Avalanche,
-      Chain.Base,
-      Chain.Berachain,
-      Chain.BinanceSmartChain,
-      Chain.Ethereum,
-      Chain.Gnosis,
-      Chain.Optimism,
-      Chain.Polygon,
-      () => window.xfi?.ethereum,
-    )
-    .with(Chain.Cosmos, Chain.Kujira, Chain.Noble, () => window.xfi?.keplr)
-    .with(Chain.Bitcoin, () => window.xfi?.bitcoin)
-    .with(Chain.BitcoinCash, () => window.xfi?.bitcoincash)
-    .with(Chain.Dogecoin, () => window.xfi?.dogecoin)
-    .with(Chain.Litecoin, () => window.xfi?.litecoin)
-    .with(Chain.Solana, () => window.xfi?.solana)
-    .with(Chain.THORChain, () => window.xfi?.thorchain)
-    .with(Chain.Maya, () => window.xfi?.mayachain)
+    .with(...EVMChains, () => window.ctrl?.ethereum)
+    .with(Chain.Cosmos, Chain.Kujira, Chain.Noble, () => window.ctrl?.keplr)
+    .with(Chain.Bitcoin, () => window.ctrl?.bitcoin)
+    .with(Chain.BitcoinCash, () => window.ctrl?.bitcoincash)
+    .with(Chain.Dogecoin, () => window.ctrl?.dogecoin)
+    .with(Chain.Litecoin, () => window.ctrl?.litecoin)
+    .with(Chain.Solana, () => window.ctrl?.solana)
+    .with(Chain.THORChain, () => window.ctrl?.thorchain)
+    .with(Chain.Maya, () => window.ctrl?.mayachain)
+    .with(Chain.Near, () => window.ctrl?.near)
     .otherwise(() => undefined);
 }
 
@@ -140,16 +130,16 @@ export async function getCtrlAddress(chain: Chain) {
     }
 
     if (chain === Chain.Near) {
-      if (!window.xfi?.near) {
+      if (!window.ctrl?.near) {
         throw new SwapKitError("wallet_ctrl_not_found", { chain: Chain.Near });
       }
 
-      if (!window.xfi.near.isSignedIn?.()) {
-        const result = await window.xfi.near.request<string[]>?.({ method: "connect" });
+      if (!window.ctrl.near.isSignedIn?.()) {
+        const result = await window.ctrl.near.request<string[]>?.({ method: "connect" });
         return result?.[0] || "";
       }
 
-      return window.xfi.near.getAccountId?.() || "";
+      return window.ctrl.near.getAccountId?.() || "";
     }
 
     const accounts = await eipProvider.request({ method: "request_accounts", params: [] });

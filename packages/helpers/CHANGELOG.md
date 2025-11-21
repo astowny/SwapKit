@@ -1,5 +1,85 @@
 # @swapkit/helpers
 
+## 4.5.2
+
+### Patch Changes
+
+- [#1593](https://github.com/swapkit/SwapKit/pull/1593) [`5c84d8a`](https://github.com/swapkit/SwapKit/commit/5c84d8a6525973692b23676a01995091df4a7a7d) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Passkeys wallet and rename internally for that
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.1.1
+
+## 4.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`82d0fd8`](https://github.com/swapkit/SwapKit/commit/82d0fd8f1072d7341f45e3d07114181cec7500e1)]:
+  - @swapkit/tokens@4.1.1
+
+## 4.5.0
+
+### Minor Changes
+
+- [#1585](https://github.com/swapkit/SwapKit/pull/1585) [`e6f25c7`](https://github.com/swapkit/SwapKit/commit/e6f25c78b0469131c9ff6895cc506075ead6290c) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Customisable api endpoints
+
+- [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Updates to isolated modules & wallet extensions extraction
+
+### Patch Changes
+
+- Updated dependencies [[`bcb9509`](https://github.com/swapkit/SwapKit/commit/bcb9509cb004f80a7b22fdeafb2ce7d34d831c99), [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317)]:
+  - @swapkit/types@0.3.0
+  - @swapkit/tokens@4.1.0
+
+## 4.4.5
+
+### Patch Changes
+
+- [#1576](https://github.com/swapkit/SwapKit/pull/1576) [`ad97c7f`](https://github.com/swapkit/SwapKit/commit/ad97c7fac861bf86ebb0eac7dd6d8e369965cd61) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Handle SUI tokens
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.0.43
+
+## 4.4.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.0.42
+
+## 4.4.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.0.41
+
+## 4.4.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.0.40
+
+## 4.4.1
+
+### Patch Changes
+
+- [#1565](https://github.com/swapkit/SwapKit/pull/1565) [`aef8b5a`](https://github.com/swapkit/SwapKit/commit/aef8b5a1b83861d3b99941ac82136294fb85d8d8) Thanks [@towanTG](https://github.com/towanTG)! - Adds OKX Provider
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.0.39
+
+## 4.4.0
+
+### Minor Changes
+
+- [#1562](https://github.com/swapkit/SwapKit/pull/1562) [`3536550`](https://github.com/swapkit/SwapKit/commit/3536550dc088c491d2d5efb874439bbf39005186) Thanks [@mfaizan1](https://github.com/mfaizan1)! - Adds service to fee type enum
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @swapkit/tokens@4.0.38
+
 ## 4.3.4
 
 ### Patch Changes

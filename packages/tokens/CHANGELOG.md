@@ -1,5 +1,71 @@
 # @swapkit/tokens
 
+## 4.1.1
+
+### Patch Changes
+
+- [`82d0fd8`](https://github.com/swapkit/SwapKit/commit/82d0fd8f1072d7341f45e3d07114181cec7500e1) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Update tokens
+
+## 4.1.0
+
+### Minor Changes
+
+- [`2f181c6`](https://github.com/swapkit/SwapKit/commit/2f181c6d891d963854c5b7702a3de583c38d9317) Thanks [@ice-chillios](https://github.com/ice-chillios)! - Updates to isolated modules & wallet extensions extraction
+
+## 4.0.43
+
+### Patch Changes
+
+- Updated dependencies [[`ad97c7f`](https://github.com/swapkit/SwapKit/commit/ad97c7fac861bf86ebb0eac7dd6d8e369965cd61)]:
+  - @swapkit/helpers@4.4.5
+  - @swapkit/toolboxes@4.2.1
+  - @swapkit/wallets@4.2.10
+
+## 4.0.42
+
+### Patch Changes
+
+- Updated dependencies [[`9bc18fc`](https://github.com/swapkit/SwapKit/commit/9bc18fcd4724a1c09731feca3e0a3e1926a8b2a4)]:
+  - @swapkit/toolboxes@4.2.0
+  - @swapkit/helpers@4.4.4
+  - @swapkit/wallets@4.2.9
+
+## 4.0.41
+
+### Patch Changes
+
+- Updated dependencies [[`955172a`](https://github.com/swapkit/SwapKit/commit/955172a033d7b5989d84e8e6f28d20a0b322952b)]:
+  - @swapkit/toolboxes@4.1.13
+  - @swapkit/wallets@4.2.8
+  - @swapkit/helpers@4.4.3
+
+## 4.0.40
+
+### Patch Changes
+
+- Updated dependencies [[`2c328fd`](https://github.com/swapkit/SwapKit/commit/2c328fd19a23c16d241ca1c6bd5abe163e502b85)]:
+  - @swapkit/toolboxes@4.1.12
+  - @swapkit/helpers@4.4.2
+  - @swapkit/wallets@4.2.7
+
+## 4.0.39
+
+### Patch Changes
+
+- Updated dependencies [[`aef8b5a`](https://github.com/swapkit/SwapKit/commit/aef8b5a1b83861d3b99941ac82136294fb85d8d8)]:
+  - @swapkit/helpers@4.4.1
+  - @swapkit/toolboxes@4.1.11
+  - @swapkit/wallets@4.2.6
+
+## 4.0.38
+
+### Patch Changes
+
+- Updated dependencies [[`3536550`](https://github.com/swapkit/SwapKit/commit/3536550dc088c491d2d5efb874439bbf39005186)]:
+  - @swapkit/helpers@4.4.0
+  - @swapkit/wallets@4.2.5
+  - @swapkit/toolboxes@4.1.10
+
 ## 4.0.37
 
 ### Patch Changes
