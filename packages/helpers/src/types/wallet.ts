@@ -101,7 +101,6 @@ export type EIP6963ProviderDetail = { info: EIP6963ProviderInfo; provider: Eip11
 
 export type EIP6963Provider = { info: EIP6963ProviderInfo; provider: Eip1193Provider };
 
-// This type represents the structure of an event dispatched by a wallet to announce its presence based on EIP-6963.
 export type EIP6963AnnounceProviderEvent = Event & { detail: EIP6963Provider };
 
 export type ChainSigner<T, S> = {
@@ -121,4 +120,63 @@ export type GenericTransferParams = {
 export type GenericCreateTransactionParams = Omit<GenericTransferParams, "feeOptionKey" & "feeRate"> & {
   sender: string;
   feeRate: number;
+};
+
+/**
+ * V3 Swap Flow Support - Per-chain capability for raw transaction signing
+ *
+ * This mapping defines which wallets support the V3 swap flow (signing raw transactions
+ * from the API) for each chain. Wallets not listed or with `false` for a chain will
+ * fall back to named plugins (THORChain, Chainflip, etc.) which build transactions themselves.
+ *
+ * Currently only KEYSTORE is enabled. Other wallets will be added after testing.
+ */
+export const V3SwapFlowSupport: Partial<Record<WalletOption, Partial<Record<Chain, boolean>>>> = {
+  [WalletOption.KEYSTORE]: {
+    Arbitrum: true,
+    Aurora: true,
+    Avalanche: true,
+    Base: true,
+    Berachain: true,
+    BinanceSmartChain: true,
+    Bitcoin: true,
+    BitcoinCash: true,
+    Botanix: true,
+    Cardano: true,
+    Chainflip: true,
+    Core: true,
+    Corn: true,
+    Cosmos: true,
+    Cronos: true,
+    Dash: true,
+    Dogecoin: true,
+    Ethereum: true,
+    Gnosis: true,
+    Hyperevm: true,
+    Kujira: true,
+    Litecoin: true,
+    Maya: true,
+    MegaETH: true,
+    Monad: true,
+    Near: true,
+    Noble: true,
+    Optimism: true,
+    Polkadot: true,
+    Polygon: true,
+    Ripple: true,
+    Solana: true,
+    Sonic: true,
+    Sui: true,
+    THORChain: true,
+    Ton: true,
+    Tron: true,
+    Unichain: true,
+    XLayer: true,
+    Zcash: true,
+  } as Partial<Record<Chain, boolean>>,
+
+  // TODO: Add other wallets after testing
+  // [WalletOption.LEDGER]: { ... },
+  // [WalletOption.TREZOR]: { ... },
+  // [WalletOption.VULTISIG]: { ... },
 };

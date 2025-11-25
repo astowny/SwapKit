@@ -125,11 +125,11 @@ export async function getChainBalance<T extends Chain>({
 }
 
 export function getTokenApproval(
-  params: { spender: string; userWallet: string; assetValue: AssetValue } | { routeId: string },
+  params: { spender: string; userWallet: string; assetValue: AssetValue } | { routeId: string; spender: string },
 ) {
   return match(params)
-    .with({ routeId: P.string }, ({ routeId }) => {
-      const url = getApiUrl(`/approve?routeId=${routeId}`);
+    .with({ routeId: P.string, spender: P.string }, ({ routeId, spender }) => {
+      const url = getApiUrl(`/approve?routeId=${routeId}&sourceAddress=${spender}`);
       return SKRequestClient.get<ApproveResponse>(url);
     })
     .with(
