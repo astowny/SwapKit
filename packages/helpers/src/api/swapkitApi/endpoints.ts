@@ -39,6 +39,7 @@ import {
 const SKRequestClient = RequestClient.extend({
   dynamicHeader: () => {
     const { swapKit } = SKConfig.get("apiKeys");
+    console.log("🔑 [dynamicHeader] swapKit API key:", swapKit ? `${swapKit.substring(0, 8)}...` : "NON DÉFINI");
     return swapKit ? { "x-api-key": swapKit } : {};
   },
 });

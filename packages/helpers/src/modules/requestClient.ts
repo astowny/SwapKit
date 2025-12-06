@@ -23,9 +23,18 @@ const calculateDelay = (attempt: number, { baseDelay, backoffMultiplier, maxDela
   Math.min(baseDelay * backoffMultiplier ** attempt, maxDelay);
 
 const makeRequest = async (url: string, config: RequestInit) => {
+  // DEBUG: Log les headers envoyés
+  console.log("🔍 [HTTP DEBUG] URL:", url);
+  console.log("🔍 [HTTP DEBUG] Headers:", JSON.stringify(config.headers, null, 2));
+
   const response = await fetch(url, config);
 
   if (!response.ok) {
+    // DEBUG: Lire le body de la réponse pour voir ce que Cloudflare renvoie
+    const responseText = await response.text();
+    console.log("🔍 [HTTP DEBUG] Response Status:", response.status);
+    console.log("🔍 [HTTP DEBUG] Response Body (first 500 chars):", responseText.substring(0, 500));
+
     const errorData = { status: response.status, statusText: response.statusText };
     throw new SwapKitError({ errorKey: "helpers_invalid_response", info: errorData }, errorData);
   }

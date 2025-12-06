@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2025-07-02T07:35:42.246Z",
+    "url": "https://api.swapkit.dev/tokens?provider=UNISWAP_V3",
+    "method": "GET",
+    "durationMs": 299.38798799999995,
+    "requestPayload": "UNISWAP_V3"
+  },
+  {
+    "timestamp": "2025-07-02T07:35:42.546Z",
+    "url": "https://api.swapkit.dev/tokens?provider=UNISWAP_V3",
+    "method": "GET",
+    "durationMs": 171.03374000000008,
+    "requestPayload": "UNISWAP_V3"
+  }
+]

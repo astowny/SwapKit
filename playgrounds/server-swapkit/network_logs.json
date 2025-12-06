@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2025-12-06T10:51:08.488Z",
+    "url": "https://api.swapkit.dev/tokens?provider=UNISWAP_V3",
+    "method": "GET",
+    "durationMs": 269.8085740059614,
+    "requestPayload": "UNISWAP_V3"
+  },
+  {
+    "timestamp": "2025-12-06T10:51:08.773Z",
+    "url": "https://api.swapkit.dev/tokens",
+    "method": "GET",
+    "durationMs": 124.47747899591923
+  },
+  {
+    "timestamp": "2025-12-06T10:51:11.064Z",
+    "url": "https://api.swapkit.dev/quote",
+    "method": "POST",
+    "durationMs": 3729.816416993737,
+    "requestPayload": {
+      "sellAsset": "ETH.ETH",
+      "buyAsset": "BSC.USDT-0x55d398326f99059fF775485246999027B3197955",
+      "sellAmount": "0.0025641",
+      "sourceAddress": "0xa415e5dDF7f3411cd80d1199F2EB01D1F4978f6f",
+      "destinationAddress": "0xa415e5dDF7f3411cd80d1199F2EB01D1F4978f6f",
+      "slippage": 3,
+      "includeTx": true,
+      "allowSmartContractSender": true,
+      "allowSmartContractReceiver": true
+    }
+  }
+]

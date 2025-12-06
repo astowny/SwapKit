@@ -1,0 +1,33 @@
+# Bun configuration file for playground
+# This file configures how Bun resolves modules and runs scripts from the playground directory
+
+[install]
+# Use the workspace root for dependency resolution
+root = "../.."
+
+[resolve]
+# Configure module resolution aliases for local packages
+# Paths are relative to /root/ServerSwapkit/playgrounds/server-swapkit
+alias = {
+  "@swapkit/helpers" = "../../packages/helpers/src/index.ts",
+  "@swapkit/helpers/api" = "../../packages/helpers/src/api/index.ts",
+  "@swapkit/helpers/contracts" = "../../packages/helpers/src/contracts.ts",
+  "@swapkit/helpers/tokens" = "../../packages/helpers/src/tokens.ts",
+  "@swapkit/tokens" = "../../packages/tokens/src/index.ts",
+  "@swapkit/core" = "../../packages/core/src/index.ts",
+  "@swapkit/plugins" = "../../packages/plugins/src/index.ts",
+  "@swapkit/plugins/thorchain" = "../../packages/plugins/src/thorchain/index.ts",
+  "@swapkit/plugins/mayachain" = "../../packages/plugins/src/mayachain/index.ts",
+  "@swapkit/plugins/evm" = "../../packages/plugins/src/evm/index.ts",
+  "@swapkit/plugins/chainflip" = "../../packages/plugins/src/chainflip/index.ts",
+  "@swapkit/plugins/radix" = "../../packages/plugins/src/radix/index.ts",
+  "@swapkit/plugins/solana" = "../../packages/plugins/src/solana/index.ts",
+  "@swapkit/plugins/near" = "../../packages/plugins/src/near/index.ts",
+  "@swapkit/wallet-keystore" = "../../packages/wallet-keystore/src/index.ts",
+  "@swapkit/wallet-core" = "../../packages/wallet-core/src/index.ts",
+  "@swapkit/contracts" = "../../packages/contracts/src/index.ts",
+  "@swapkit/sdk" = "../../packages/sdk/src/index.ts",
+  "@swapkit/wallets" = "../../packages/wallets/src/index.ts",
+  "@swapkit/server" = "../../packages/server/src/index.ts",
+}
+

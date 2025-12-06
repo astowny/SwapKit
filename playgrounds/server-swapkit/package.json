@@ -1,0 +1,44 @@
+{
+  "name": "server-swapkit",
+  "version": "1.0.0",
+  "description": "SwapKit API Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "bun server.ts",
+    "dev": "bun --watch server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "getTokenList": "bun run core/getTokenList.ts",
+    "runRealSwap": "bun run core/swap/runRealSwap.ts",
+    "docs": "echo 'Documentation Swagger disponible sur http://localhost:3023/api-docs'",
+    "install-deps": "npm install --no-package-lock"
+  },
+  "keywords": [
+    "swapkit",
+    "api",
+    "swap",
+    "crypto"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@swapkit/core": "workspace:*",
+    "@swapkit/helpers": "workspace:*",
+    "@swapkit/plugins": "workspace:*",
+    "@swapkit/toolboxes": "workspace:*",
+    "@swapkit/wallet-keystore": "workspace:*",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.6",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.0",
+    "typescript": "5.9.3"
+  }
+}
