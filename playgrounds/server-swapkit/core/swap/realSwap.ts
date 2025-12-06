@@ -317,6 +317,16 @@ function debugPluginSpecifics(pluginName: string, swapParams: any) {
       }
       break;
 
+    case 'near':
+      logger.info(`[${pluginName}] Type: NEAR Protocol`);
+      if (swapParams.route) {
+        logger.info(`[${pluginName}] Inbound Address: ${swapParams.route.inboundAddress || 'Non défini'}`);
+        if (swapParams.route.meta && swapParams.route.meta.near) {
+          logger.info(`[${pluginName}] NEAR meta:`, JSON.stringify(swapParams.route.meta.near, null, 2));
+        }
+      }
+      break;
+
     default:
       logger.info(`[${pluginName}] Type: Plugin générique`);
       if (swapParams.route) {
@@ -760,7 +770,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
       // Debug des plugins directement sur swapKit
       logger.info("🔧 Debug des plugins après wrapping:");
-      const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix'];
+      const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix', 'near', 'solana'];
       pluginNames.forEach(name => {
         if (swapKit[name]) {
           logger.info(`  - Plugin ${name}: ✅`);
@@ -1986,7 +1996,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       logger.debug("🔍 [Plugin Debug] - Propriétés de swapKit:", Object.keys(swapKit));
 
       // Les plugins sont directement sur swapKit, pas dans swapKit.plugins
-      const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix'];
+      const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix', 'near', 'solana'];
       const availablePlugins = pluginNames.filter(name => swapKit[name]);
 
       logger.debug("🔍 [Plugin Debug] - Plugins disponibles:", availablePlugins);
@@ -2012,8 +2022,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
       if (!plugin) {
         logger.info(`🔍 Plugin ${pluginName} non trouvé par nom, recherche par provider...`);
 
-        const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix'];
-        for (const availablePluginName of pluginNames) {
+        const allPluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix', 'near', 'solana'];
+        for (const availablePluginName of allPluginNames) {
           const availablePlugin = swapKit[availablePluginName];
           if (availablePlugin?.supportedSwapkitProviders?.includes(pluginName)) {
             logger.info(`🎯 Plugin ${availablePluginName} supporte le provider ${pluginName}!`);
@@ -2127,7 +2137,7 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
         logger.error(`❌ Plugin ${pluginName} non trouvé!`);
         logger.error("🔍 [Plugin Debug] Analyse détaillée:");
 
-        const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix'];
+        const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix', 'near', 'solana'];
         const availablePlugins = pluginNames.filter(name => swapKit[name]);
         logger.error("- Plugins disponibles:", availablePlugins);
 

@@ -4,7 +4,9 @@ import { SwapKitApi } from "@swapkit/helpers/api";
 
 import { ChainflipPlugin } from "@swapkit/plugins/chainflip";
 import { EVMPlugin } from "@swapkit/plugins/evm";
+import { NearPlugin } from "@swapkit/plugins/near";
 import { RadixPlugin } from "@swapkit/plugins/radix";
+import { SolanaPlugin } from "@swapkit/plugins/solana";
 // Importer les plugins disponibles
 import {
   MayachainPlugin,
@@ -98,6 +100,8 @@ const swapKitParams = {
     ...MayachainPlugin,
     ...EVMPlugin,
     ...ChainflipPlugin,
+    ...NearPlugin,
+    ...SolanaPlugin,
     // ...KadoPlugin,
     ...RadixPlugin,
   },
