@@ -10,11 +10,63 @@
  * - Uses swapKit.swap({ route, feeOptionKey }) for executing swaps
  * - Proper token approval handling
  * - Clean separation between quote and execution
+ * - Automatic wallet connection before swap execution
  */
 
 import { Chain, FeeOption } from "@swapkit/helpers";
 import { SwapKitApi } from "@swapkit/helpers/api";
 import { getSwapKitClientV2, connectWalletsV2 } from "./clientV2.js";
+
+/**
+ * Extracts the chain identifier from an asset string (e.g., "ETH.ETH" -> "ETH")
+ */
+function getChainFromAsset(assetString: string): Chain | null {
+  if (!assetString) return null;
+  const chainPart = assetString.split(".")[0];
+  // Map common chain identifiers to Chain enum
+  const chainMap: Record<string, Chain> = {
+    ETH: Chain.Ethereum,
+    BTC: Chain.Bitcoin,
+    LTC: Chain.Litecoin,
+    BCH: Chain.BitcoinCash,
+    DOGE: Chain.Dogecoin,
+    AVAX: Chain.Avalanche,
+    BSC: Chain.BinanceSmartChain,
+    THOR: Chain.THORChain,
+    MAYA: Chain.Maya,
+    GAIA: Chain.Cosmos,
+    ARB: Chain.Arbitrum,
+    OP: Chain.Optimism,
+    MATIC: Chain.Polygon,
+    BASE: Chain.Base,
+    SOL: Chain.Solana,
+    NEAR: Chain.Near,
+    XRD: Chain.Radix,
+  };
+  return chainMap[chainPart] || null;
+}
+
+/**
+ * Ensures wallet is connected for the specified chain
+ */
+async function ensureWalletConnected(chain: Chain): Promise<void> {
+  const swapKit = getSwapKitClientV2();
+  const address = swapKit.getAddress(chain);
+
+  if (!address) {
+    console.log(`🔐 [V2] Wallet non connecté pour ${chain}, connexion en cours...`);
+    await connectWalletsV2([chain]);
+
+    // Verify connection
+    const newAddress = swapKit.getAddress(chain);
+    if (!newAddress) {
+      throw new Error(`Impossible de connecter le wallet pour la chaîne ${chain}`);
+    }
+    console.log(`✅ [V2] Wallet connecté pour ${chain}: ${newAddress}`);
+  } else {
+    console.log(`✅ [V2] Wallet déjà connecté pour ${chain}: ${address}`);
+  }
+}
 
 /**
  * Options for V2 swap quote
@@ -187,6 +239,31 @@ export async function executeSwapV2(options: SwapOptionsV2): Promise<SwapResultV
   console.log(`   Fee option: ${feeOptionKey}`);
 
   try {
+    // Extract source chain from route and ensure wallet is connected
+    const sellAsset = route.sellAsset;
+    const buyAsset = route.buyAsset;
+
+    console.log(`📋 [V2] Route details: ${sellAsset} → ${buyAsset}`);
+
+    // Connect wallet for source chain (required for swap execution)
+    const sourceChain = getChainFromAsset(sellAsset);
+    if (sourceChain) {
+      await ensureWalletConnected(sourceChain);
+    } else {
+      console.warn(`⚠️ [V2] Impossible de déterminer la chaîne source depuis: ${sellAsset}`);
+    }
+
+    // Optionally connect destination chain wallet (useful for cross-chain swaps)
+    const destChain = getChainFromAsset(buyAsset);
+    if (destChain && destChain !== sourceChain) {
+      try {
+        await ensureWalletConnected(destChain);
+      } catch (destError: any) {
+        console.warn(`⚠️ [V2] Impossible de connecter le wallet destination (${destChain}): ${destError.message}`);
+        // Continue anyway - destination wallet is not always required
+      }
+    }
+
     const swapKit = getSwapKitClientV2();
 
     // Execute the swap following the documentation pattern
@@ -206,10 +283,20 @@ export async function executeSwapV2(options: SwapOptionsV2): Promise<SwapResultV
     };
   } catch (error: any) {
     console.error("❌ [V2] Swap execution failed:", error.message);
+
+    // Provide more helpful error message for wallet connection issues
+    let errorMessage = error.message;
+    let errorCode = error.code || error.errorKey || "SWAP_ERROR";
+
+    if (error.errorKey === "core_wallet_connection_not_found" || error.message.includes("wallet")) {
+      errorMessage = `Wallet non connecté pour exécuter le swap. ${error.message}. Vérifiez que MNEMONIC est configuré dans .env`;
+      errorCode = "WALLET_NOT_CONNECTED";
+    }
+
     return {
       success: false,
-      error: error.message,
-      errorCode: error.code || "SWAP_ERROR",
+      error: errorMessage,
+      errorCode,
       timestamp: new Date().toISOString(),
     };
   }
@@ -220,69 +307,119 @@ export async function executeSwapV2(options: SwapOptionsV2): Promise<SwapResultV
  * This is the convenience method that combines both steps
  *
  * Following the full flow from the documentation:
- * 1. Get quote with SwapKitApi.getSwapQuote()
- * 2. Select best route (routes[0])
- * 3. Execute with swapKit.swap({ route, feeOptionKey })
+ * 1. Connect wallets for source and destination chains
+ * 2. Get quote with SwapKitApi.getSwapQuote()
+ * 3. Select best route (routes[0])
+ * 4. Execute with swapKit.swap({ route, feeOptionKey })
  */
 export async function executeFullSwapV2(options: SwapFullOptionsV2): Promise<SwapResultV2> {
   const {
     sellAsset,
     buyAsset,
     sellAmount,
-    sourceAddress,
-    destinationAddress,
     slippage = 3,
     feeOptionKey = FeeOption.Fast,
     routeIndex = 0,
   } = options;
 
+  // Allow override of source/destination addresses
+  let { sourceAddress, destinationAddress } = options;
+
   console.log(`🚀 [V2] Starting full swap flow: ${sellAmount} ${sellAsset} → ${buyAsset}`);
 
-  // Step 1: Get quote
-  const quoteResult = await getSwapQuoteV2({
-    sellAsset,
-    buyAsset,
-    sellAmount,
-    sourceAddress,
-    destinationAddress,
-    slippage,
-  });
+  try {
+    // Step 0: Connect wallets and get addresses if not provided
+    const sourceChain = getChainFromAsset(sellAsset);
+    const destChain = getChainFromAsset(buyAsset);
 
-  if (!quoteResult.success || !quoteResult.routes || quoteResult.routes.length === 0) {
+    if (sourceChain) {
+      await ensureWalletConnected(sourceChain);
+      const swapKit = getSwapKitClientV2();
+      if (!sourceAddress) {
+        sourceAddress = swapKit.getAddress(sourceChain);
+        console.log(`📍 [V2] Source address auto-detected: ${sourceAddress}`);
+      }
+    }
+
+    if (destChain) {
+      try {
+        await ensureWalletConnected(destChain);
+        const swapKit = getSwapKitClientV2();
+        if (!destinationAddress) {
+          destinationAddress = swapKit.getAddress(destChain);
+          console.log(`📍 [V2] Destination address auto-detected: ${destinationAddress}`);
+        }
+      } catch (destError: any) {
+        console.warn(`⚠️ [V2] Impossible de connecter le wallet destination: ${destError.message}`);
+        // Continue - destination might be optional for some swaps
+      }
+    }
+
+    // Step 1: Get quote with wallet addresses
+    const quoteResult = await getSwapQuoteV2({
+      sellAsset,
+      buyAsset,
+      sellAmount,
+      sourceAddress,
+      destinationAddress,
+      slippage,
+    });
+
+    if (!quoteResult.success || !quoteResult.routes || quoteResult.routes.length === 0) {
+      return {
+        success: false,
+        error: quoteResult.error || "No routes available",
+        errorCode: "NO_ROUTES",
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Step 2: Select route (default: best route = index 0)
+    const selectedRoute = quoteResult.routes[routeIndex];
+    if (!selectedRoute) {
+      return {
+        success: false,
+        error: `Route index ${routeIndex} not available (${quoteResult.routes.length} routes found)`,
+        errorCode: "INVALID_ROUTE_INDEX",
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    console.log(`📋 [V2] Selected route ${routeIndex}:`);
+    console.log(`   Providers: ${selectedRoute.providers?.join(", ") || "Unknown"}`);
+    console.log(`   Expected output: ${selectedRoute.expectedBuyAmount || selectedRoute.expectedOutput}`);
+
+    // Step 3: Execute swap (wallet connection already done above)
+    return executeSwapV2({
+      route: selectedRoute,
+      feeOptionKey,
+    });
+  } catch (error: any) {
+    console.error("❌ [V2] Full swap flow failed:", error.message);
+
+    let errorMessage = error.message;
+    let errorCode = error.code || error.errorKey || "SWAP_FLOW_ERROR";
+
+    if (error.errorKey === "core_wallet_connection_not_found" || error.message.includes("wallet") || error.message.includes("MNEMONIC")) {
+      errorMessage = `Erreur de connexion wallet: ${error.message}. Vérifiez que MNEMONIC est configuré dans .env`;
+      errorCode = "WALLET_CONNECTION_ERROR";
+    }
+
     return {
       success: false,
-      error: quoteResult.error || "No routes available",
-      errorCode: "NO_ROUTES",
+      error: errorMessage,
+      errorCode,
       timestamp: new Date().toISOString(),
     };
   }
-
-  // Step 2: Select route (default: best route = index 0)
-  const selectedRoute = quoteResult.routes[routeIndex];
-  if (!selectedRoute) {
-    return {
-      success: false,
-      error: `Route index ${routeIndex} not available (${quoteResult.routes.length} routes found)`,
-      errorCode: "INVALID_ROUTE_INDEX",
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  console.log(`📋 [V2] Selected route ${routeIndex}:`);
-  console.log(`   Providers: ${selectedRoute.providers?.join(", ") || "Unknown"}`);
-  console.log(`   Expected output: ${selectedRoute.expectedBuyAmount || selectedRoute.expectedOutput}`);
-
-  // Step 3: Execute swap
-  return executeSwapV2({
-    route: selectedRoute,
-    feeOptionKey,
-  });
 }
 
 /**
  * Get wallet address for a chain using the connected SwapKit client
+ * Automatically connects the wallet if not already connected
  */
-export function getAddressV2(chain: Chain): string | undefined {
+export async function getAddressV2(chain: Chain): Promise<string | undefined> {
+  await ensureWalletConnected(chain);
   const swapKit = getSwapKitClientV2();
   return swapKit.getAddress(chain);
 }
@@ -290,6 +427,7 @@ export function getAddressV2(chain: Chain): string | undefined {
 /**
  * Get wallet balance for a chain
  * Following: https://swapkit.github.io/SwapKit/start/getting-started/
+ * Automatically connects the wallet if not already connected
  *
  * From docs:
  * ```
@@ -298,14 +436,17 @@ export function getAddressV2(chain: Chain): string | undefined {
  * ```
  */
 export async function getBalanceV2(chain: Chain, refresh = false): Promise<any> {
+  await ensureWalletConnected(chain);
   const swapKit = getSwapKitClientV2();
   return swapKit.getBalance(chain, refresh);
 }
 
 /**
  * Get all connected wallets with balances
+ * Automatically connects the wallet if not already connected
  */
 export async function getWalletWithBalanceV2(chain: Chain): Promise<any> {
+  await ensureWalletConnected(chain);
   const swapKit = getSwapKitClientV2();
   return swapKit.getWalletWithBalance(chain);
 }

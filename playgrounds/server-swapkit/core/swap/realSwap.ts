@@ -2016,7 +2016,8 @@ export async function executeRealSwap(options: RealSwapOptions = {}) {
 
       // Déboguer le plugin spécifique avant l'exécution
       // Les plugins sont directement sur swapKit, pas dans swapKit.plugins
-      let plugin = swapKit[pluginName];
+      // Essayer d'abord avec le nom exact, puis en minuscules
+      let plugin = swapKit[pluginName] || swapKit[pluginName.toLowerCase()];
 
       // Si le plugin n'est pas trouvé par nom, chercher par provider supporté
       if (!plugin) {

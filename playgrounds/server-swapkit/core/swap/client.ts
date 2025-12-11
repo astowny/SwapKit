@@ -169,6 +169,8 @@ export const getSwapKitClient = (chainsToConnect: Chain[] = []): SwapKitClient =
     console.log("- EVMPlugin:", typeof EVMPlugin, Object.keys(EVMPlugin));
     console.log("- ChainflipPlugin:", typeof ChainflipPlugin, Object.keys(ChainflipPlugin));
     console.log("- RadixPlugin:", typeof RadixPlugin, Object.keys(RadixPlugin));
+    console.log("- NearPlugin:", typeof NearPlugin, Object.keys(NearPlugin));
+    console.log("- SolanaPlugin:", typeof SolanaPlugin, Object.keys(SolanaPlugin));
 
     // Vérifier le contenu du plugin EVM spécifiquement
     if (EVMPlugin && typeof EVMPlugin === 'object') {
@@ -228,7 +230,7 @@ export const getSwapKitClient = (chainsToConnect: Chain[] = []): SwapKitClient =
 
       // Debug des plugins disponibles - CORRECTION: les plugins sont directement sur le client
       console.log("🔍 [Plugin Debug] Plugins disponibles dans le client:");
-      const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix'];
+      const pluginNames = ['evm', 'thorchain', 'mayachain', 'chainflip', 'radix', 'near', 'solana'];
       const availablePlugins = pluginNames.filter(name => client[name]);
 
       console.log("- Plugins trouvés:", availablePlugins);
