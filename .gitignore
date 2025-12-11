@@ -9,6 +9,7 @@
 .npmrc
 CLAUDE*
 AGENTS*
+network_logs.json
 
 .astro/
 .idea/
