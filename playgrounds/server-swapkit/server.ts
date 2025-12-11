@@ -33,6 +33,12 @@ import {
   getWalletWithBalanceV2,
   connectWalletsV2,
 } from "./core/swap/realSwapV2.js";
+import {
+  initializeSwapKitV2,
+  getSwapKitClientV2,
+  areWalletsConnected,
+  getKeystoreSupportedChains,
+} from "./core/swap/clientV2.js";
 import { FeeOption } from "@swapkit/helpers";
 
 // Autres imports
@@ -1841,24 +1847,34 @@ app.post('/api/liquidity/withdraw', async (req: any, res: any) => {
 app.listen(Number(PORT), "0.0.0.0", async () => {
   console.log(`Serveur API de swap démarré sur le port ${PORT}`);
 
-  // Pré-connecter le wallet si la phrase mnémonique est configurée
+  // ===== CONNEXION DES WALLETS V2 =====
+  // Utilise initializeSwapKitV2() pour connecter TOUTES les chaînes keystore supportées
+  // Suivant la documentation: https://swapkit.github.io/SwapKit/start/getting-started/
   if (process.env.MNEMONIC) {
     try {
-      // Vérifier que la phrase mnémonique est définie et valide
-      if (!process.env.MNEMONIC) {
-        throw new Error("La phrase mnémonique n'est pas configurée");
-      }
-      console.log(
-        `Pré-connexion du wallet avec la phrase mnémonique (${process.env.MNEMONIC.split(" ").length} mots)...`,
-      );
-      await connectKeystoreWrapper({
-        phrase: process.env.MNEMONIC,
-        chains: thorchainSupportedChains,
-      });
-      console.log("✅ Wallet pré-connecté avec succès pour toutes les chaînes");
+      console.log("\n🚀 [V2] Initialisation du client SwapKit V2 avec toutes les chaînes keystore...");
+      console.log(`📋 [V2] Chaînes keystore supportées: ${getKeystoreSupportedChains().length}`);
+
+      // Initialise le client et connecte TOUTES les chaînes keystore supportées
+      await initializeSwapKitV2();
+
+      console.log("✅ [V2] Client SwapKit V2 initialisé avec succès!");
+      console.log(`📊 [V2] Wallets connectés: ${areWalletsConnected() ? "Oui" : "Non"}`);
     } catch (error) {
-      console.error("Erreur lors de la pré-connexion du wallet:", error.message);
+      console.error("❌ [V2] Erreur lors de l'initialisation du client V2:", error.message);
       console.log("Les connexions seront effectuées à la demande.");
+
+      // Fallback to old method for compatibility
+      try {
+        console.log("\n⚠️ Tentative de fallback avec l'ancienne méthode...");
+        await connectKeystoreWrapper({
+          phrase: process.env.MNEMONIC,
+          chains: thorchainSupportedChains,
+        });
+        console.log("✅ Wallet pré-connecté avec succès (méthode fallback)");
+      } catch (fallbackError) {
+        console.error("❌ Fallback également échoué:", fallbackError.message);
+      }
     }
   } else {
     console.warn(
@@ -1868,19 +1884,16 @@ app.listen(Number(PORT), "0.0.0.0", async () => {
   }
 
   const endInitTime = Date.now();
-  console.log(`✅ Initialisation terminée en ${(endInitTime - startInitTime) / 1000} secondes`);
+  console.log(`\n✅ Initialisation terminée en ${(endInitTime - startInitTime) / 1000} secondes`);
 
-  console.log(`Endpoint de swap disponible sur http://0.0.0.0:${PORT}/api/swaps`);
-  console.log(`Endpoint de balances disponible sur http://0.0.0.0:${PORT}/api/balances`);
-  console.log(
-    `Endpoint de balances Ethereum disponible sur http://0.0.0.0:${PORT}/api/eth-balance`,
-  );
-  console.log(`Endpoint d'adresses disponible sur http://0.0.0.0:${PORT}/api/addresses`);
-  console.log(
-    `Endpoint de test d'environnement disponible sur http://0.0.0.0:${PORT}/api/test-env`,
-  );
-  console.log(`Endpoint de santé disponible sur http://0.0.0.0:${PORT}/api/health`);
-  console.log(`Documentation Swagger disponible sur http://0.0.0.0:${PORT}/api-docs`);
+  console.log(`\n📌 Endpoints disponibles:`);
+  console.log(`  GET  /api/swaps - Endpoint de swap`);
+  console.log(`  GET  /api/balances - Endpoint de balances`);
+  console.log(`  GET  /api/eth-balance - Balances Ethereum`);
+  console.log(`  GET  /api/addresses - Adresses`);
+  console.log(`  GET  /api/test-env - Test d'environnement`);
+  console.log(`  GET  /api/health - Santé`);
+  console.log(`  GET  /api-docs - Documentation Swagger`);
 
   // V2 Endpoints (Following SwapKit documentation)
   console.log(`\n📚 V2 Endpoints (SwapKit documentation-compliant):`);
@@ -1889,4 +1902,6 @@ app.listen(Number(PORT), "0.0.0.0", async () => {
   console.log(`  GET  /api/v2/balances/:chain - Get chain balance`);
   console.log(`  GET  /api/v2/wallet/:chain - Get wallet with balance`);
   console.log(`  POST /api/v2/connect - Connect wallets for chains`);
+
+  console.log(`\n🌐 Serveur prêt sur http://0.0.0.0:${PORT}`);
 });

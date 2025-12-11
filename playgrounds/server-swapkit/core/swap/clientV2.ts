@@ -11,11 +11,13 @@
  * - Uses swapKit.swap({ route, feeOptionKey }) for executing swaps
  * - Cleaner separation between quote and execution
  * - Better error handling following SDK patterns
+ * - Auto-connects all keystore-supported chains at initialization
  */
 
 import { Chain } from "@swapkit/helpers";
 import { createSwapKit } from "@swapkit/sdk";
 import { SwapKitApi } from "@swapkit/helpers/api";
+import { KEYSTORE_SUPPORTED_CHAINS } from "@swapkit/wallets/keystore";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -25,6 +27,7 @@ export type SwapKitClientV2 = ReturnType<typeof createSwapKit>;
 
 // Cache for the client instance
 let cachedClient: SwapKitClientV2 | null = null;
+let walletsConnected = false;
 
 /**
  * Creates a SwapKit client following the recommended SDK pattern
@@ -76,6 +79,69 @@ export async function connectWalletsV2(chains: Chain[]): Promise<void> {
 }
 
 /**
+ * Connects ALL keystore-supported chains at once
+ * Uses KEYSTORE_SUPPORTED_CHAINS from @swapkit/wallets/keystore
+ * Following: https://swapkit.github.io/SwapKit/guides/actions/connecting/
+ */
+export async function connectAllWalletsV2(): Promise<void> {
+  if (walletsConnected) {
+    console.log("✅ [V2] Wallets déjà connectés, skip");
+    return;
+  }
+
+  const client = getSwapKitClientV2();
+  const phrase = process.env.MNEMONIC;
+
+  if (!phrase) {
+    throw new Error("MNEMONIC non configurée dans .env");
+  }
+
+  console.log(`🔐 [V2] Connexion de TOUTES les chaînes keystore supportées...`);
+  console.log(`📋 [V2] Chaînes à connecter (${KEYSTORE_SUPPORTED_CHAINS.length}): ${KEYSTORE_SUPPORTED_CHAINS.join(", ")}`);
+
+  try {
+    // Following the bun-backend example: swapKit.connectKeystore(KEYSTORE_SUPPORTED_CHAINS, phrase)
+    await client.connectKeystore(KEYSTORE_SUPPORTED_CHAINS, phrase);
+    walletsConnected = true;
+    console.log("✅ [V2] Toutes les chaînes keystore connectées avec succès!");
+
+    // Log addresses for each connected chain
+    console.log("\n📍 [V2] Adresses des wallets connectés:");
+    for (const chain of KEYSTORE_SUPPORTED_CHAINS) {
+      try {
+        const address = client.getAddress(chain);
+        if (address) {
+          console.log(`  ${chain}: ${address}`);
+        }
+      } catch (e) {
+        // Some chains might not have addresses yet, skip silently
+      }
+    }
+  } catch (error) {
+    console.error("❌ [V2] Erreur lors de la connexion des wallets:", error);
+    throw error;
+  }
+}
+
+/**
+ * Initialize the SwapKit client and connect all wallets
+ * This should be called at server startup
+ */
+export async function initializeSwapKitV2(): Promise<SwapKitClientV2> {
+  console.log("\n🚀 [V2] Initialisation du client SwapKit V2...");
+
+  // Create the client
+  const client = getSwapKitClientV2();
+
+  // Connect all wallets
+  await connectAllWalletsV2();
+
+  console.log("✅ [V2] Client SwapKit V2 initialisé et wallets connectés!\n");
+
+  return client;
+}
+
+/**
  * Get the SwapKit API instance for making API calls
  * This is the recommended way to access the API for quotes, prices, etc.
  */
@@ -84,10 +150,25 @@ export function getSwapKitApiV2() {
 }
 
 /**
+ * Check if wallets are connected
+ */
+export function areWalletsConnected(): boolean {
+  return walletsConnected;
+}
+
+/**
+ * Get list of all keystore supported chains
+ */
+export function getKeystoreSupportedChains(): readonly Chain[] {
+  return KEYSTORE_SUPPORTED_CHAINS;
+}
+
+/**
  * Clears the cached client (useful for testing or reconnecting)
  */
 export function clearClientCacheV2(): void {
   cachedClient = null;
+  walletsConnected = false;
   console.log("🗑️ [V2] Cache du client SwapKit vidé");
 }
 
