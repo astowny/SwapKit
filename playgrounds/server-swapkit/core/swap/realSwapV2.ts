@@ -13,7 +13,7 @@
  * - Automatic wallet connection before swap execution
  */
 
-import { Chain, FeeOption } from "@swapkit/helpers";
+import { Chain, FeeOption, AssetValue, EVMChains, type EVMChain } from "@swapkit/helpers";
 import { SwapKitApi } from "@swapkit/helpers/api";
 import { getSwapKitClientV2, connectWalletsV2 } from "./clientV2.js";
 
@@ -65,6 +65,115 @@ async function ensureWalletConnected(chain: Chain): Promise<void> {
     console.log(`✅ [V2] Wallet connecté pour ${chain}: ${newAddress}`);
   } else {
     console.log(`✅ [V2] Wallet déjà connecté pour ${chain}: ${address}`);
+  }
+}
+
+/**
+ * Check and approve token if needed before swap execution
+ * Following the documentation pattern:
+ * 1. Create AssetValue for the token
+ * 2. Check if it's not a gas asset (native tokens don't need approval)
+ * 3. Check if approved using isAssetValueApproved
+ * 4. If not approved, call approveAssetValue
+ *
+ * @param route - The swap route containing sellAsset, sellAmount, and tx info
+ * @returns true if approved (or no approval needed), false if approval failed
+ */
+async function ensureTokenApproval(route: any): Promise<{ approved: boolean; error?: string }> {
+  const swapKit = getSwapKitClientV2();
+
+  try {
+    // Create AssetValue from the sell asset
+    const assetValue = await AssetValue.from({
+      asset: route.sellAsset,
+      value: route.sellAmount,
+      asyncTokenLookup: true,
+    });
+
+    console.log(`🔍 [V2] Vérification de l'approbation pour: ${route.sellAsset}`);
+    console.log(`   Montant: ${route.sellAmount}`);
+    console.log(`   Est un gas asset: ${assetValue.isGasAsset}`);
+    console.log(`   Chain: ${assetValue.chain}`);
+
+    // Native tokens (gas assets) don't need approval
+    if (assetValue.isGasAsset) {
+      console.log(`✅ [V2] Token natif (gas asset), pas besoin d'approbation`);
+      return { approved: true };
+    }
+
+    // Check if chain is EVM (only EVM chains need token approval)
+    const chain = assetValue.chain as EVMChain;
+    if (!EVMChains.includes(chain)) {
+      console.log(`✅ [V2] Chaîne non-EVM (${chain}), pas besoin d'approbation`);
+      return { approved: true };
+    }
+
+    // Get the spender address from the route
+    // The spender can be in multiple locations depending on the provider:
+    // 1. route.tx.from - Used by official SwapKit playground for EVM transactions
+    // 2. route.tx.to - Transaction destination (router contract)
+    // 3. route.meta.approvalAddress - Explicit approval address in metadata
+    // 4. route.targetAddress - Target address for some providers
+    // 5. route.contract - Contract address for some providers
+    const tx = route.tx as any;
+    const meta = route.meta as any;
+
+    // Priority order: meta.approvalAddress > tx.from > tx.to > targetAddress > contract
+    const spenderAddress =
+      meta?.approvalAddress ||
+      tx?.from ||
+      tx?.to ||
+      route.targetAddress ||
+      route.contract;
+
+    console.log(`🔍 [V2] Recherche du spender dans la route:`);
+    console.log(`   - meta.approvalAddress: ${meta?.approvalAddress || 'non défini'}`);
+    console.log(`   - tx.from: ${tx?.from || 'non défini'}`);
+    console.log(`   - tx.to: ${tx?.to || 'non défini'}`);
+    console.log(`   - route.targetAddress: ${route.targetAddress || 'non défini'}`);
+    console.log(`   - route.contract: ${route.contract || 'non défini'}`);
+
+    if (!spenderAddress) {
+      console.error(`❌ [V2] Aucune adresse spender trouvée dans la route!`);
+      console.error(`   La route complète:`, JSON.stringify(route, null, 2).substring(0, 500));
+      return {
+        approved: false,
+        error: "Impossible de trouver l'adresse du spender pour l'approbation. Vérifiez que la route contient tx.from, tx.to, meta.approvalAddress ou targetAddress."
+      };
+    }
+
+    console.log(`📋 [V2] Spender address sélectionné: ${spenderAddress}`);
+
+    // Check if already approved
+    const isApproved = await swapKit.isAssetValueApproved(assetValue, spenderAddress);
+
+    if (isApproved) {
+      console.log(`✅ [V2] Token déjà approuvé pour le spender`);
+      return { approved: true };
+    }
+
+    // Token not approved, need to approve
+    console.log(`⏳ [V2] Token non approuvé, approbation en cours...`);
+    console.log(`   Token: ${assetValue.symbol} (${assetValue.address})`);
+    console.log(`   Spender: ${spenderAddress}`);
+
+    const approvalTxHash = await swapKit.approveAssetValue(assetValue, spenderAddress);
+
+    console.log(`✅ [V2] Token approuvé avec succès!`);
+    console.log(`   TX Hash d'approbation: ${approvalTxHash}`);
+
+    // Wait a bit for the approval to be confirmed on chain
+    console.log(`⏳ [V2] Attente de 5 secondes pour confirmation de l'approbation...`);
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    return { approved: true };
+
+  } catch (error: any) {
+    console.error(`❌ [V2] Erreur lors de la vérification/approbation:`, error.message);
+    return {
+      approved: false,
+      error: `Erreur d'approbation du token: ${error.message}`
+    };
   }
 }
 
@@ -262,6 +371,18 @@ export async function executeSwapV2(options: SwapOptionsV2): Promise<SwapResultV
         console.warn(`⚠️ [V2] Impossible de connecter le wallet destination (${destChain}): ${destError.message}`);
         // Continue anyway - destination wallet is not always required
       }
+    }
+
+    // IMPORTANT: Check and approve token before swap execution
+    // This prevents "EXECUTION_REVERTED" errors due to missing token approval
+    const approvalResult = await ensureTokenApproval(route);
+    if (!approvalResult.approved) {
+      return {
+        success: false,
+        error: approvalResult.error || "Token approval failed",
+        errorCode: "TOKEN_APPROVAL_FAILED",
+        timestamp: new Date().toISOString(),
+      };
     }
 
     const swapKit = getSwapKitClientV2();
