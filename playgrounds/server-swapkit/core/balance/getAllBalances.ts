@@ -10,6 +10,8 @@ export const thorchainSupportedChains = [
   Chain.THORChain,
   Chain.Avalanche,
   Chain.Cosmos,
+  // Added additional chains to increase coverage (including Kujira)
+  Chain.Kujira,
   Chain.Litecoin,
   Chain.BitcoinCash,
   Chain.Dogecoin,
@@ -154,6 +156,8 @@ export async function getAllChainBalances() {
         Chain.Ethereum,
         Chain.BinanceSmartChain,
         Chain.THORChain,
+        // Ensure Kujira is included when connecting wallets
+        Chain.Kujira,
         Chain.Avalanche,
         Chain.Cosmos,
         Chain.Litecoin,

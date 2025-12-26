@@ -14,6 +14,7 @@
   "files": {
     "includes": [
       "**",
+      "playgrounds/server-swapkit/**",
       "!**/node_modules",
       "!**/dist",
       "!**/playgrounds",
